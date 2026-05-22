@@ -29,7 +29,7 @@ export default async function Home() {
   const projects = await getProjects();
 
   return (
-    <main className="font-sabon min-h-screen bg-[#e7dfcf] text-[#1f1a13] px-5 py-5 md:px-10 md:py-8">
+    <main className="font-sabon min-h-screen bg-[#ffffff] text-[#1f1a13] px-5 py-5 md:px-10 md:py-8">
       <header className="font-narkiss flex items-start justify-between text-xs md:text-sm uppercase tracking-[0.1em]">
         <Link href="/" className="hover:opacity-50 transition">
           Dean Hjerpyn
@@ -54,13 +54,19 @@ export default async function Home() {
       <section className="mt-20 md:mt-32">
         <div className="grid md:grid-cols-12 gap-6">
           <h1 className="font-narkiss md:col-span-8 text-6xl md:text-[10vw] leading-[0.85] tracking-[-0.07em] uppercase">
-            Landscape as living system.
+            Landscape architecture student at the Ohio State University
           </h1>
 
           <div className="md:col-span-4 flex flex-col justify-between gap-12">
             <p className="font-sabon text-lg md:text-2xl leading-tight">
-              A portfolio of landscape architecture work focused on ecology,
-              materiality, public space, and planted atmospheres.
+              A portfolio of well built, site-specific landscapes that respond
+              to client needs while simultaneously challenging historical +
+              contemporary landscape construction methods, materials, and formal
+              conventions. Our design approach is post-internet,
+              critically-regionalist, and respectfully inflammatory. We reserve
+              the right to revise the previous sentences and those that follow
+              whenever we please, as we are a practice that prioritizes constant
+              evolution.
             </p>
 
             <p className="font-narkiss text-xs uppercase tracking-[0.12em]">
@@ -132,7 +138,7 @@ export default async function Home() {
           <p className="font-sabon max-w-2xl text-base md:text-lg leading-7 text-[#1f1a13]/75">
             The work is organized as a living archive of drawings, field
             observations, project narratives, material studies, and design
-            proposals. Project pages are managed through Sanity CMS.
+            proposals.
           </p>
         </div>
       </section>
