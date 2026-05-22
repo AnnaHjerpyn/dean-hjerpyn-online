@@ -1,33 +1,33 @@
 import Link from "next/link";
+import { client } from "@/sanity/lib/client";
 
-const projects = [
-  {
-    title: "Urban Wetland Restoration",
-    location: "Columbus, OH",
-    type: "Ecological Design",
-    year: "2026",
-  },
-  {
-    title: "Civic Plaza Planting Strategy",
-    location: "Cincinnati, OH",
-    type: "Public Realm",
-    year: "2025",
-  },
-  {
-    title: "Residential Garden Framework",
-    location: "New Albany, OH",
-    type: "Residential",
-    year: "2025",
-  },
-  {
-    title: "Riparian Edge Study",
-    location: "Ohio River Valley",
-    type: "Research",
-    year: "2024",
-  },
-];
+type Project = {
+  title: string;
+  location?: string;
+  year?: string;
+  firm?: string;
+  role?: string;
+  projectType?: string;
+  slug?: string;
+};
 
-export default function Home() {
+async function getProjects(): Promise<Project[]> {
+  return client.fetch(`
+    *[_type == "project"] | order(year desc) {
+      title,
+      location,
+      year,
+      firm,
+      role,
+      projectType,
+      "slug": slug.current
+    }
+  `);
+}
+
+export default async function Home() {
+  const projects = await getProjects();
+
   return (
     <main className="font-sabon min-h-screen bg-[#e7dfcf] text-[#1f1a13] px-5 py-5 md:px-10 md:py-8">
       <header className="font-narkiss flex items-start justify-between text-xs md:text-sm uppercase tracking-[0.1em]">
@@ -90,10 +90,10 @@ export default function Home() {
         <div className="border-t-2 border-[#1f1a13]">
           {projects.map((project) => (
             <article
-              key={project.title}
+              key={project.slug || project.title}
               className="grid grid-cols-12 gap-4 border-b-2 border-[#1f1a13] py-7 md:py-9 hover:bg-[#d8cbb5] transition"
             >
-              <h2 className="font-narkiss col-span-12 md:col-span-6 text-3xl md:text-5xl tracking-[-0.05em] uppercase">
+              <h2 className="font-narkiss col-span-12 md:col-span-5 text-3xl md:text-5xl tracking-[-0.05em] uppercase">
                 {project.title}
               </h2>
 
@@ -101,11 +101,15 @@ export default function Home() {
                 {project.location}
               </p>
 
-              <p className="font-narkiss col-span-4 md:col-span-3 text-sm uppercase">
-                {project.type}
+              <p className="font-narkiss col-span-6 md:col-span-2 text-sm uppercase">
+                {project.projectType}
               </p>
 
-              <p className="font-narkiss col-span-2 md:col-span-1 text-right text-sm">
+              <p className="font-narkiss col-span-6 md:col-span-2 text-sm uppercase">
+                {project.role}
+              </p>
+
+              <p className="font-narkiss col-span-6 md:col-span-1 text-right text-sm">
                 {project.year}
               </p>
             </article>
@@ -128,7 +132,7 @@ export default function Home() {
           <p className="font-sabon max-w-2xl text-base md:text-lg leading-7 text-[#1f1a13]/75">
             The work is organized as a living archive of drawings, field
             observations, project narratives, material studies, and design
-            proposals. Future project pages can be managed through Sanity CMS.
+            proposals. Project pages are managed through Sanity CMS.
           </p>
         </div>
       </section>
