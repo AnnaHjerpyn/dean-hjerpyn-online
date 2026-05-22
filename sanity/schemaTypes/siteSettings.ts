@@ -1,5 +1,7 @@
 // sanity/schemaTypes/siteSettings.ts
-export default {
+import { defineType } from "sanity";
+
+export const siteSettingsType = defineType({
   name: "siteSettings",
   title: "Site Settings",
   type: "document",
@@ -10,4 +12,4 @@ export default {
     { name: "email", type: "string" },
     { name: "instagram", type: "url" },
   ],
-};
+});
