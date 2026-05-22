@@ -40,12 +40,22 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Mabry Pro";
+  src: url("/fonts/Mabry Pro/Mabry Pro.woff") format("woff");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
 
   --font-sabon: "Sabon", Georgia, serif;
   --font-narkiss: "Narkiss Tam", Arial, sans-serif;
+  --font-mabrypro: "Mabry Pro", Arial, sans-serif;
+
 }
 
 @theme inline {
@@ -54,6 +64,7 @@
 
   --font-sabon: var(--font-sabon);
   --font-narkiss: var(--font-narkiss);
+  --font-narkiss: var(--font-mabrypro);
 }
 
 body {

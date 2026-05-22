@@ -30,7 +30,7 @@ export default async function Home() {
 
   return (
     <main className="font-sabon min-h-screen bg-[#ffffff] text-[#1f1a13] px-5 py-5 md:px-10 md:py-8">
-      <header className="font-narkiss flex items-start justify-between text-xs md:text-sm uppercase tracking-[0.1em]">
+      <header className="font-mabrypro flex items-start justify-between text-xs md:text-sm uppercase tracking-[0.1em]">
         <Link href="/" className="hover:opacity-50 transition">
           Dean Hjerpyn
         </Link>
