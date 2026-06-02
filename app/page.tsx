@@ -53,8 +53,8 @@ export default async function Home() {
 
       <section className="mt-20 md:mt-32">
         <div className="grid md:grid-cols-12 gap-6">
-          <h1 className="font-narkiss md:col-span-8 text-6xl md:text-[10vw] leading-[0.85] tracking-[-0.07em] uppercase">
-            Landscape architecture student at the Ohio State University
+          <h1 className="font-mabrypro md:col-span-8 text-6xl md:text-[10vw] leading-[0.85] tracking-[-0.07em] uppercase">
+            DEAN HJERPYN
           </h1>
 
           <div className="md:col-span-4 flex flex-col justify-between gap-12">
@@ -69,7 +69,7 @@ export default async function Home() {
               evolution.
             </p>
 
-            <p className="font-narkiss text-xs uppercase tracking-[0.12em]">
+            <p className="font-mabrypro text-xs uppercase tracking-[0.12em]">
               Columbus, Ohio / Landscape Architecture
             </p>
           </div>
@@ -77,7 +77,7 @@ export default async function Home() {
       </section>
 
       <section className="mt-24 md:mt-36 grid md:grid-cols-12 gap-8">
-        <p className="font-narkiss md:col-span-3 text-sm uppercase tracking-[0.1em]">
+        <p className="font-mabrypro md:col-span-3 text-sm uppercase tracking-[0.1em]">
           Practice
         </p>
 
@@ -88,7 +88,7 @@ export default async function Home() {
       </section>
 
       <section id="work" className="mt-28 md:mt-40">
-        <div className="font-narkiss mb-4 flex justify-between text-xs uppercase tracking-[0.12em]">
+        <div className="font-mabrypro mb-4 flex justify-between text-xs uppercase tracking-[0.12em]">
           <p>Selected Work</p>
           <p>Archive / 2024—2026</p>
         </div>
@@ -99,19 +99,19 @@ export default async function Home() {
               key={project.slug || project.title}
               className="grid grid-cols-12 gap-4 border-b-2 border-[#1f1a13] py-7 md:py-9 hover:bg-[#d8cbb5] transition"
             >
-              <h2 className="font-narkiss col-span-12 md:col-span-5 text-3xl md:text-5xl tracking-[-0.05em] uppercase">
+              <h2 className="font-mabrypro col-span-12 md:col-span-5 text-3xl md:text-5xl tracking-[-0.05em] uppercase">
                 {project.title}
               </h2>
 
-              <p className="font-narkiss col-span-6 md:col-span-2 text-sm uppercase">
+              <p className="font-mabrypro col-span-6 md:col-span-2 text-sm uppercase">
                 {project.location}
               </p>
 
-              <p className="font-narkiss col-span-6 md:col-span-2 text-sm uppercase">
+              <p className="font-mabrypro col-span-6 md:col-span-2 text-sm uppercase">
                 {project.projectType}
               </p>
 
-              <p className="font-narkiss col-span-6 md:col-span-2 text-sm uppercase">
+              <p className="font-mabrypro col-span-6 md:col-span-2 text-sm uppercase">
                 {project.role}
               </p>
 
