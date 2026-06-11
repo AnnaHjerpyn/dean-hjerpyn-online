@@ -1,61 +1,68 @@
 @import "tailwindcss";
 
+/* =========================
+   FONTS
+========================= */
+
 @font-face {
   font-family: "Sabon";
   src: url("/fonts/Sabon/SabonRegular/SabonRegular.woff") format("woff");
-  font-style: normal;
   font-weight: 400;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Sabon";
   src: url("/fonts/Sabon/SabonBold/SabonBold.woff") format("woff");
-  font-style: normal;
   font-weight: 700;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Sabon";
   src: url("/fonts/Sabon/SabonItalic/SabonItalic.woff") format("woff");
-  font-style: italic;
   font-weight: 400;
+  font-style: italic;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Sabon";
   src: url("/fonts/Sabon/SabonBoldItalic/SabonBoldItalic.woff") format("woff");
-  font-style: italic;
   font-weight: 700;
+  font-style: italic;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Narkiss Tam";
   src: url("/fonts/NarkissTamHeavy/NarkissTamHeavy.woff") format("woff");
-  font-style: normal;
   font-weight: 800;
+  font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: "Mabry Pro";
   src: url("/fonts/Mabry Pro/Mabry Pro.woff") format("woff");
+  font-weight: 400;
   font-style: normal;
-  font-weight: 700;
   font-display: swap;
 }
 
+/* =========================
+   VARIABLES
+========================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f4f2;
+  --foreground: #111111;
 
   --font-sabon: "Sabon", Georgia, serif;
   --font-narkiss: "Narkiss Tam", Arial, sans-serif;
   --font-mabrypro: "Mabry Pro", Arial, sans-serif;
-
 }
 
 @theme inline {
@@ -64,11 +71,180 @@
 
   --font-sabon: var(--font-sabon);
   --font-narkiss: var(--font-narkiss);
-  --font-narkiss: var(--font-mabrypro);
+  --font-mabrypro: var(--font-mabrypro);
+}
+
+/* =========================
+   BASE
+========================= */
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sabon);
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* =========================
+   FLOATING WORK GALLERY
+========================= */
+
+.work-gallery-section {
+  margin-top: 12rem;
+}
+
+.work-gallery {
+  position: relative;
+  width: 100%;
+  height: 2600px;
+}
+
+.work-gallery-item {
+  position: absolute;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.4s ease;
+}
+
+.work-gallery-item:hover {
+  transform: translateY(-6px);
+}
+
+.work-gallery-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.work-gallery-item h2 {
+  margin-top: 0.5rem;
+  font-family: var(--font-mabrypro);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* =========================
+   DESKTOP POSITIONS
+========================= */
+
+.item-1 {
+  left: 2vw;
+  top: 120px;
+  width: 34vw;
+}
+
+.item-2 {
+  left: 42vw;
+  top: 0;
+  width: 15vw;
+}
+
+.item-3 {
+  right: 6vw;
+  top: 260px;
+  width: 24vw;
+}
+
+.item-4 {
+  left: 46vw;
+  top: 850px;
+  width: 24vw;
+}
+
+.item-5 {
+  left: 15vw;
+  top: 1120px;
+  width: 18vw;
+}
+
+.item-6 {
+  right: 10vw;
+  top: 1380px;
+  width: 28vw;
+}
+
+.item-7 {
+  left: 4vw;
+  top: 1750px;
+  width: 24vw;
+}
+
+.item-8 {
+  left: 48vw;
+  top: 1950px;
+  width: 16vw;
+}
+
+/* =========================
+   STICKY LOGO
+========================= */
+
+.site-mark {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 100;
+  pointer-events: none;
+
+  mix-blend-mode: difference;
+  color: white;
+
+  font-family: var(--font-mabrypro);
+  text-transform: uppercase;
+  line-height: 0.82;
+  letter-spacing: -0.08em;
+}
+
+.site-mark-dean {
+  font-size: clamp(2rem, 3vw, 4rem);
+}
+
+.site-mark-hjerpyn {
+  margin-left: 2vw;
+  font-size: clamp(2rem, 3vw, 4rem);
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 767px) {
+  .work-gallery {
+    position: static;
+    height: auto;
+    display: grid;
+    gap: 3rem;
+  }
+
+  .work-gallery-item {
+    position: static;
+    width: 100% !important;
+  }
+
+  .site-mark {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .site-mark-dean,
+  .site-mark-hjerpyn {
+    font-size: 1.8rem;
+  }
+
+  .site-mark-hjerpyn {
+    margin-left: 1rem;
+  }
 }

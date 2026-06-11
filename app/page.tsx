@@ -15,6 +15,15 @@ type Project = {
   coverImageUrl?: string;
 };
 
+type SiteSettings = {
+  name?: string;
+  headline?: string;
+  aboutHeading?: string;
+  aboutBody?: string;
+  email?: string;
+  instagram?: string;
+};
+
 async function getProjects(): Promise<Project[]> {
   return client.fetch(
     `
@@ -34,8 +43,26 @@ async function getProjects(): Promise<Project[]> {
   );
 }
 
+async function getSiteSettings(): Promise<SiteSettings | null> {
+  return client.fetch(
+    `
+      *[_type == "siteSettings"][0] {
+        name,
+        headline,
+        aboutHeading,
+        aboutBody,
+        email,
+        instagram
+      }
+    `,
+    {},
+    { cache: "no-store" }
+  );
+}
+
 export default async function Home() {
   const projects = await getProjects();
+  const settings = await getSiteSettings();
 
   return (
     <main className="min-h-screen bg-white text-[#1f1a13] px-4 py-4 md:px-8 md:py-8">
@@ -54,8 +81,8 @@ export default async function Home() {
           <a href="#work" className="hover:opacity-50 transition">
             Work
           </a>
-          <a href="#info" className="hover:opacity-50 transition">
-            Info
+          <a href="#about" className="hover:opacity-50 transition">
+            About
           </a>
           <a
             href="mailto:hello@example.com"
@@ -96,36 +123,46 @@ export default async function Home() {
       </section>
 
       <section id="work" className="mt-40 md:mt-56 scroll-mt-24">
-        <div className="font-mabrypro mb-4 flex justify-between text-xs uppercase tracking-[0.12em]">
+        <div className="mb-6 flex justify-between font-mabrypro text-xs uppercase tracking-[0.12em]">
           <p>Selected Work</p>
           <p>Archive / 2024—2026</p>
         </div>
 
         {projects.length === 0 ? (
-          <p className="font-mabrypro border-t-2 border-[#1f1a13] py-7 text-sm uppercase tracking-[0.12em]">
+          <p className="font-mabrypro border-t border-[#1f1a13] py-8 text-sm uppercase tracking-[0.12em]">
             No projects found.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
               <Link
                 key={project.slug || project.title}
                 href={project.slug ? `/projects/${project.slug}` : "#"}
                 className="group block"
               >
-                {project.coverImageUrl && (
-                  <div className="aspect-[4/3] w-full overflow-hidden bg-[#e7dfcf]">
+                <div className="aspect-[4/3] w-full overflow-hidden bg-[#e7dfcf]">
+                  {project.coverImageUrl ? (
                     <img
                       src={project.coverImageUrl}
                       alt={project.title}
                       className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center font-narkiss text-xs uppercase tracking-[0.12em] opacity-50">
+                      No Image
+                    </div>
+                  )}
+                </div>
 
-                <h2 className="font-mabrypro mt-3 text-base md:text-xl leading-none tracking-[-0.04em] uppercase">
-                  {project.title}
-                </h2>
+                <div className="mt-3 flex items-start justify-between gap-4 font-narkiss text-s uppercase tracking-[0.08em]">
+                  <h2>{project.title}</h2>
+                  {/* <p>{project.year}</p> */}
+                </div>
+
+                {/* <p className="mt-1 font-sabon text-sm text-[#1f1a13]/70">
+                  {project.location}
+                  {project.projectType ? ` / ${project.projectType}` : ""}
+                </p> */}
               </Link>
             ))}
           </div>
@@ -133,25 +170,32 @@ export default async function Home() {
       </section>
 
       <section
-        id="info"
+        id="about"
         className="mt-40 md:mt-56 grid md:grid-cols-12 gap-8 scroll-mt-24"
       >
         <p className="font-mabrypro md:col-span-3 text-sm uppercase tracking-[0.12em]">
-          Information
+          About
         </p>
 
         <div className="md:col-span-9 space-y-8">
           <p className="font-sabon text-2xl md:text-4xl leading-tight tracking-[-0.03em]">
-            This portfolio documents work across ecological restoration, public
-            landscapes, planting systems, residential gardens, and spatial
-            research.
+            {settings?.aboutHeading ||
+              "Dean Hjerpyn is a landscape designer working across planted spaces, ecological systems, and site-specific environments."}
           </p>
 
           <p className="font-sabon max-w-2xl text-base md:text-lg leading-7 text-[#1f1a13]/75">
-            The work is organized as a living archive of drawings, field
-            observations, project narratives, material studies, and design
-            proposals.
+            {settings?.aboutBody ||
+              "Her work explores the relationship between people, plants, material, maintenance, and time. This portfolio gathers selected projects, field observations, design studies, and landscape research."}
           </p>
+
+          {settings?.email && (
+            <a
+              href={`mailto:${settings.email}`}
+              className="font-mabrypro inline-block text-sm uppercase tracking-[0.12em] hover:opacity-50 transition"
+            >
+              Contact Dean
+            </a>
+          )}
         </div>
       </section>
 

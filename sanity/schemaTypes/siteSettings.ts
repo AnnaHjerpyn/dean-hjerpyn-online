@@ -1,4 +1,3 @@
-// sanity/schemaTypes/siteSettings.ts
 import { defineType } from "sanity";
 
 export const siteSettingsType = defineType({
@@ -6,10 +5,35 @@ export const siteSettingsType = defineType({
   title: "Site Settings",
   type: "document",
   fields: [
-    { name: "name", type: "string" },
-    { name: "headline", type: "text" },
-    { name: "bio", type: "text" },
-    { name: "email", type: "string" },
-    { name: "instagram", type: "url" },
+    {
+      name: "name",
+      title: "Name",
+      type: "string",
+    },
+    {
+      name: "headline",
+      title: "Homepage Headline",
+      type: "text",
+    },
+    {
+      name: "aboutHeading",
+      title: "About Heading",
+      type: "text",
+    },
+    {
+      name: "aboutBody",
+      title: "About Body",
+      type: "text",
+    },
+    {
+      name: "email",
+      title: "Email",
+      type: "string",
+    },
+    {
+      name: "instagram",
+      title: "Instagram",
+      type: "url",
+    },
   ],
 });
