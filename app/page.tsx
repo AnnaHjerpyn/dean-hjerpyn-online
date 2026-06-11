@@ -40,11 +40,11 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-white text-[#1f1a13] px-4 py-4 md:px-8 md:py-8">
       <header>
-        <div className="fixed top-6 left-6 md:top-8 md:left-8 z-50 pointer-events-none mix-blend-difference text-white">
-          <div className="font-mabrypro uppercase leading-[0.82] tracking-[-0.08em]">
-            <div className="text-[60px] md:text-[7vw]">DEAN</div>
+        <div className="fixed top-8 left-8 z-50 pointer-events-none mix-blend-difference text-white">
+          <div className="font-narkiss uppercase leading-[0.82] tracking-[-0.06em]">
+            <div className="text-[48px] md:text-[4vw]">DEAN</div>
 
-            <div className="ml-[90px] md:ml-[7vw] text-[60px] md:text-[7vw]">
+            <div className="ml-[40px] md:ml-[2.5vw] text-[48px] md:text-[4vw]">
               HJERPYN
             </div>
           </div>
