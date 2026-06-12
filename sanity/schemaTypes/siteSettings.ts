@@ -4,6 +4,7 @@ export const siteSettingsType = defineType({
   name: "siteSettings",
   title: "Site Settings",
   type: "document",
+
   fields: [
     {
       name: "name",
@@ -34,6 +35,28 @@ export const siteSettingsType = defineType({
       name: "instagram",
       title: "Instagram",
       type: "url",
+    },
+    {
+      name: "plantDrawings",
+      title: "Landing Page Plant Drawings",
+      description:
+        "Transparent PNG or SVG drawings that animate onto the homepage.",
+      type: "array",
+      of: [
+        {
+          type: "image",
+          options: {
+            hotspot: true,
+          },
+          fields: [
+            {
+              name: "alt",
+              title: "Alternative Text",
+              type: "string",
+            },
+          ],
+        },
+      ],
     },
   ],
 });

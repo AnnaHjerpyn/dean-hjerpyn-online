@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { client } from "@/sanity/lib/client";
+import AnimatedHero from "./components/AnimatedHero";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,6 +16,11 @@ type Project = {
   coverImageUrl?: string;
 };
 
+type PlantDrawing = {
+  url: string;
+  alt?: string;
+};
+
 type SiteSettings = {
   name?: string;
   headline?: string;
@@ -22,6 +28,7 @@ type SiteSettings = {
   aboutBody?: string;
   email?: string;
   instagram?: string;
+  plantDrawings?: PlantDrawing[];
 };
 
 async function getProjects(): Promise<Project[]> {
@@ -52,7 +59,11 @@ async function getSiteSettings(): Promise<SiteSettings | null> {
         aboutHeading,
         aboutBody,
         email,
-        instagram
+        instagram,
+        "plantDrawings": plantDrawings[] {
+          "url": asset->url,
+          alt
+        }
       }
     `,
     {},
@@ -69,55 +80,14 @@ export default async function Home() {
   const email = settings?.email || "hello@example.com";
   const currentYear = new Date().getFullYear();
 
+  const headline =
+    settings?.headline ||
+    "A portfolio of well built, site-specific landscapes that respond to client needs while simultaneously challenging historical and contemporary landscape construction methods, materials, and formal conventions. Our design approach is post-internet, critically-regionalist, and respectfully inflammatory.";
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-white px-4 pb-5 text-[#1f1a13] md:px-8 md:pb-8">
-      {/* Fixed site identity */}
-      <header>
-        <Link
-          href="/"
-          aria-label="Dean Hjerpyn homepage"
-          className="fixed left-4 top-4 z-50 mix-blend-difference text-white md:left-8 md:top-8"
-        >
-          <span className="block font-editorial text-[24px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[2.2vw]">
-            Dean
-          </span>
-
-          <span className="ml-[25px] block font-editorial text-[24px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:ml-[1.8vw] md:text-[2.2vw]">
-            Hjerpyn
-          </span>
-        </Link>
-
-        <nav className="fixed right-4 top-4 z-50 flex gap-4 font-editorial text-[9px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:gap-7 md:text-[10px]">
-          <a href="#work" className="transition-opacity hover:opacity-50">
-            Work
-          </a>
-
-          <a href="#about" className="transition-opacity hover:opacity-50">
-            About
-          </a>
-
-          <a
-            href={`mailto:${email}`}
-            className="transition-opacity hover:opacity-50"
-          >
-            Contact
-          </a>
-        </nav>
-      </header>
-
-      {/* Introduction */}
-      <section className="flex min-h-screen items-end pb-10 pt-36 md:pb-14 md:pt-48">
-        <div className="ml-auto w-full md:w-[68%]">
-          <p className="font-editorial text-[clamp(1.65rem,2.65vw,3.1rem)] font-normal leading-[1.02] tracking-[-0.04em]">
-            {settings?.headline ||
-              "A portfolio of well built, site-specific landscapes that respond to client needs while simultaneously challenging historical and contemporary landscape construction methods, materials, and formal conventions. Our design approach is post-internet, critically-regionalist, and respectfully inflammatory."}
-          </p>
-
-          <p className="mt-9 font-editorial text-[8px] font-normal uppercase tracking-[0.17em] md:mt-12 md:text-[9px]">
-            Columbus, Ohio / Landscape Architecture
-          </p>
-        </div>
-      </section>
+      {/* Animated site identity, navigation, and introduction */}
+      <AnimatedHero headline={headline} email={email} />
 
       {/* Practice statement */}
       <section className="mt-24 grid gap-7 md:mt-40 md:grid-cols-12">
@@ -233,9 +203,7 @@ export default async function Home() {
       <footer className="mt-32 flex items-end justify-between border-t border-[#1f1a13] pt-4 font-editorial text-[8px] font-normal uppercase tracking-[0.14em] md:mt-48 md:text-[9px]">
         <p>© {currentYear}</p>
 
-        <p className="text-right">
-          {settings?.name || "Dean Hjerpyn"} / Landscape Architecture
-        </p>
+        <p className="text-right">{settings?.name || "Dean Hjerpyn"}</p>
       </footer>
     </main>
   );
