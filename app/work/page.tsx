@@ -34,23 +34,72 @@ async function getProjects(): Promise<Project[]> {
   );
 }
 
+function getImageSizeClass(index: number) {
+  const pattern = [
+    "md:col-span-5",
+    "md:col-span-3",
+    "md:col-span-4",
+    "md:col-span-4",
+    "md:col-span-5",
+    "md:col-span-3",
+    "md:col-span-3",
+    "md:col-span-4",
+    "md:col-span-5",
+  ];
+
+  return pattern[index % pattern.length];
+}
+
+function getImageRatioClass(index: number) {
+  const pattern = [
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-[5/4]",
+    "aspect-[1/1]",
+    "aspect-[4/3]",
+    "aspect-[3/4]",
+    "aspect-[4/5]",
+    "aspect-[5/4]",
+    "aspect-[1/1]",
+  ];
+
+  return pattern[index % pattern.length];
+}
+
 export default async function WorkPage() {
   const projects = await getProjects();
 
   return (
-    <main className="min-h-screen bg-white px-4 pb-5 pt-28 text-[#1f1a13] md:px-8 md:pb-8 md:pt-32">
-      <header className="fixed left-4 right-4 top-4 z-50 flex items-start justify-between mix-blend-difference text-white md:left-8 md:right-8 md:top-8">
+    <main className="min-h-screen overflow-x-hidden bg-white px-4 pb-5 pt-28 text-[#1f1a13] md:px-8 md:pb-8 md:pt-36">
+      <header>
         <Link
           href="/"
-          className="font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]"
+          aria-label="Dean Hjerpyn homepage"
+          className="fixed left-4 top-4 z-50 block mix-blend-difference text-white md:left-8 md:top-8"
         >
-          <span className="block">Dean</span>
-          <span className="block">Hjerpyn</span>
+          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+            Dean
+          </span>
+
+          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+            Hjerpyn
+          </span>
         </Link>
 
-        <nav className="flex gap-4 font-editorial text-[9px] font-normal uppercase tracking-[0.15em] md:gap-7 md:text-[10px]">
+        <nav className="fixed right-4 top-4 z-50 flex max-w-[62vw] flex-wrap justify-end gap-x-4 gap-y-2 font-editorial text-[8px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:max-w-none md:gap-x-7 md:text-[10px]">
           <Link href="/work" className="transition-opacity hover:opacity-50">
             Work
+          </Link>
+
+          <Link href="/cv" className="transition-opacity hover:opacity-50">
+            CV
+          </Link>
+
+          <Link
+            href="/field-journal"
+            className="transition-opacity hover:opacity-50"
+          >
+            Field Journal
           </Link>
 
           <Link href="/#about" className="transition-opacity hover:opacity-50">
@@ -66,58 +115,55 @@ export default async function WorkPage() {
         </nav>
       </header>
 
-      <section>
-        <div className="mb-4 flex items-end justify-between border-b border-[#1f1a13] pb-3 font-editorial text-[8px] font-normal uppercase tracking-[0.16em] md:text-[9px]">
-          <p>Selected Work</p>
-          <p>Archive / 2024—2026</p>
-        </div>
-
-        {projects.length === 0 ? (
-          <p className="py-7 font-editorial text-[9px] font-normal uppercase tracking-[0.16em]">
+      {projects.length === 0 ? (
+        <section className="flex min-h-[60vh] items-end">
+          <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em]">
             No projects found.
           </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <Link
-                key={project.slug || project.title}
-                href={project.slug ? `/projects/${project.slug}` : "#"}
-                className="group block"
-              >
-                <div className="aspect-[4/3] w-full overflow-hidden bg-[#ecece8]">
-                  {project.coverImageUrl ? (
-                    <img
-                      src={project.coverImageUrl}
-                      alt={project.title}
-                      className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.015]"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center font-editorial text-[8px] font-normal uppercase tracking-[0.16em] opacity-50">
-                      No image
-                    </div>
+        </section>
+      ) : (
+        <section className="grid grid-cols-1 gap-x-5 gap-y-5 md:grid-cols-12 md:gap-x-6 md:gap-y-6">
+          {projects.map((project, index) => (
+            <Link
+              key={project.slug || project.title}
+              href={project.slug ? `/projects/${project.slug}` : "#"}
+              className={`group relative block overflow-hidden bg-[#ecece8] ${getImageSizeClass(
+                index
+              )} ${getImageRatioClass(index)}`}
+            >
+              {project.coverImageUrl ? (
+                <img
+                  src={project.coverImageUrl}
+                  alt={project.title}
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center font-editorial text-[8px] font-normal uppercase tracking-[0.16em] opacity-50">
+                  No image
+                </div>
+              )}
+
+              <div className="pointer-events-none absolute inset-0 flex items-end bg-black/0 p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <div className="w-full bg-white/90 p-2 font-editorial text-[8px] font-normal uppercase tracking-[0.14em] text-[#1f1a13] backdrop-blur-sm md:text-[9px]">
+                  <div className="flex justify-between gap-4">
+                    <p>{project.title}</p>
+
+                    {project.year && <p>{project.year}</p>}
+                  </div>
+
+                  {(project.location || project.projectType) && (
+                    <p className="mt-1 font-sabon text-[12px] normal-case leading-4 tracking-normal text-[#1f1a13]/65">
+                      {project.location}
+                      {project.location && project.projectType ? " / " : ""}
+                      {project.projectType}
+                    </p>
                   )}
                 </div>
-
-                <div className="mt-2.5 flex items-start justify-between gap-5 font-editorial text-[9px] font-normal uppercase tracking-[0.08em] md:text-[10px]">
-                  <h2 className="font-normal leading-tight">{project.title}</h2>
-
-                  {project.year && (
-                    <p className="shrink-0 font-normal">{project.year}</p>
-                  )}
-                </div>
-
-                {(project.location || project.projectType) && (
-                  <p className="mt-1 font-sabon text-xs font-normal leading-4 text-[#1f1a13]/65">
-                    {project.location}
-                    {project.location && project.projectType ? " / " : ""}
-                    {project.projectType}
-                  </p>
-                )}
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+              </div>
+            </Link>
+          ))}
+        </section>
+      )}
     </main>
   );
 }

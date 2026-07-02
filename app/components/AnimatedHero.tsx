@@ -62,7 +62,8 @@ export default function AnimatedHero({
   useLayoutEffect(() => {
     const measureDean = () => {
       if (!deanRef.current) return;
-      setDeanWidth(deanRef.current.offsetWidth);
+
+      setDeanWidth(deanRef.current.getBoundingClientRect().width);
     };
 
     measureDean();
@@ -132,7 +133,7 @@ export default function AnimatedHero({
           aria-label="Dean Hjerpyn homepage"
           className="fixed left-4 top-4 z-50 block mix-blend-difference text-white md:left-8 md:top-8"
         >
-          <span className="block font-editorial text-[40px] md:text-[3.8vw] font-normal uppercase leading-[0.86] tracking-[-0.05em]">
+          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
             <span ref={deanRef} className="inline-block">
               Dean
             </span>
@@ -140,7 +141,7 @@ export default function AnimatedHero({
 
           <motion.span
             style={{ x: hjerpynX }}
-            className="block font-editorial text-[40px] md:text-[3.8vw] font-normal uppercase leading-[0.86] tracking-[-0.05em] will-change-transform"
+            className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] will-change-transform md:text-[3.2vw]"
           >
             Hjerpyn
           </motion.span>
@@ -154,10 +155,21 @@ export default function AnimatedHero({
             delay: shouldReduceMotion ? 0 : 0.45,
             ease: [0.22, 1, 0.36, 1],
           }}
-          className="fixed right-4 top-4 z-50 flex gap-4 font-editorial text-[9px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:gap-7 md:text-[10px]"
+          className="fixed right-4 top-4 z-50 flex max-w-[62vw] flex-wrap justify-end gap-x-4 gap-y-2 font-editorial text-[8px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:max-w-none md:gap-x-7 md:text-[10px]"
         >
           <Link href="/work" className="transition-opacity hover:opacity-50">
             Work
+          </Link>
+
+          <Link href="/cv" className="transition-opacity hover:opacity-50">
+            CV
+          </Link>
+
+          <Link
+            href="/field-journal"
+            className="transition-opacity hover:opacity-50"
+          >
+            Field Journal
           </Link>
 
           <a href="#about" className="transition-opacity hover:opacity-50">
@@ -191,7 +203,7 @@ export default function AnimatedHero({
             variants={wordsContainer}
             initial={shouldReduceMotion ? "visible" : "hidden"}
             animate="visible"
-            className="font-editorial text-[clamp(1.65rem,2.65vw,3.1rem)] font-normal leading-[1.02] tracking-[-0.04em]"
+            className="font-sabon text-[clamp(1.65rem,2.65vw,3.1rem)] font-normal leading-[1.02] tracking-[-0.04em]"
           >
             {words.map((word, index) => (
               <span
