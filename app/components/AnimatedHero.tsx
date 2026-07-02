@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useReducedMotion,
@@ -54,7 +54,32 @@ export default function AnimatedHero({
   plantDrawings = [],
 }: AnimatedHeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const deanRef = useRef<HTMLSpanElement>(null);
+
+  const [deanWidth, setDeanWidth] = useState(0);
   const shouldReduceMotion = useReducedMotion();
+
+  useLayoutEffect(() => {
+    const measureDean = () => {
+      if (!deanRef.current) return;
+      setDeanWidth(deanRef.current.offsetWidth);
+    };
+
+    measureDean();
+
+    const resizeObserver = new ResizeObserver(measureDean);
+
+    if (deanRef.current) {
+      resizeObserver.observe(deanRef.current);
+    }
+
+    window.addEventListener("resize", measureDean);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", measureDean);
+    };
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -67,16 +92,10 @@ export default function AnimatedHero({
     mass: 0.3,
   });
 
-  const deanX = useTransform(
-    smoothProgress,
-    [0, 1],
-    [0, shouldReduceMotion ? 0 : 70]
-  );
-
   const hjerpynX = useTransform(
     smoothProgress,
     [0, 1],
-    [0, shouldReduceMotion ? 0 : -55]
+    [0, shouldReduceMotion ? 0 : deanWidth]
   );
 
   const introY = useTransform(
@@ -111,18 +130,17 @@ export default function AnimatedHero({
         <Link
           href="/"
           aria-label="Dean Hjerpyn homepage"
-          className="fixed left-4 top-4 z-50 mix-blend-difference text-white md:left-8 md:top-8"
+          className="fixed left-4 top-4 z-50 block mix-blend-difference text-white md:left-8 md:top-8"
         >
-          <motion.span
-            style={{ x: deanX }}
-            className="block font-editorial text-[24px] font-normal uppercase leading-[0.86] tracking-[-0.05em] will-change-transform md:text-[2.2vw]"
-          >
-            Dean
-          </motion.span>
+          <span className="block font-editorial text-[40px] md:text-[3.8vw] font-normal uppercase leading-[0.86] tracking-[-0.05em]">
+            <span ref={deanRef} className="inline-block">
+              Dean
+            </span>
+          </span>
 
           <motion.span
             style={{ x: hjerpynX }}
-            className="ml-[25px] block font-editorial text-[24px] font-normal uppercase leading-[0.86] tracking-[-0.05em] will-change-transform md:ml-[1.8vw] md:text-[2.2vw]"
+            className="block font-editorial text-[40px] md:text-[3.8vw] font-normal uppercase leading-[0.86] tracking-[-0.05em] will-change-transform"
           >
             Hjerpyn
           </motion.span>
@@ -138,9 +156,9 @@ export default function AnimatedHero({
           }}
           className="fixed right-4 top-4 z-50 flex gap-4 font-editorial text-[9px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:gap-7 md:text-[10px]"
         >
-          <a href="#work" className="transition-opacity hover:opacity-50">
+          <Link href="/work" className="transition-opacity hover:opacity-50">
             Work
-          </a>
+          </Link>
 
           <a href="#about" className="transition-opacity hover:opacity-50">
             About
@@ -159,10 +177,8 @@ export default function AnimatedHero({
         ref={sectionRef}
         className="relative min-h-[82svh] overflow-hidden pb-10 pt-28 md:pb-14 md:pt-36"
       >
-        {/* Animated plant drawings behind the text */}
         <PlantGarden drawings={plantDrawings} />
 
-        {/* Animated introduction */}
         <motion.div
           style={{
             y: introY,
