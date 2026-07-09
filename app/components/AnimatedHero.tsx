@@ -179,13 +179,6 @@ export default function AnimatedHero({
           className="mt-4 flex flex-col gap-8 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]"
         >
           <a
-            href="#about"
-            className="w-fit transition-opacity hover:opacity-50"
-          >
-            About
-          </a>
-
-          <a
             href={`mailto:${email}`}
             className="w-fit transition-opacity hover:opacity-50"
           >
