@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { client } from "@/sanity/lib/client";
+import FieldJournalStack from "./FieldJournalStack";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,7 +36,7 @@ export default async function FieldJournalPage() {
   const entries = await getFieldJournalEntries();
 
   return (
-    <main className="min-h-screen bg-white px-4 pb-5 pt-28 text-[#1f1a13] md:px-8 md:pb-8 md:pt-36">
+    <main className="min-h-screen bg-white text-[#1f1a13]">
       <header>
         <Link
           href="/"
@@ -80,34 +81,14 @@ export default async function FieldJournalPage() {
         </nav>
       </header>
 
-      <section className="mb-16 grid gap-8 md:grid-cols-12"></section>
-
       {entries.length > 0 ? (
-        <section className="columns-1 gap-4 sm:columns-2 md:columns-3 xl:columns-4">
-          {entries.map((entry) => (
-            <article key={entry._id} className="mb-4 break-inside-avoid">
-              {entry.imageUrl && (
-                <img
-                  src={entry.imageUrl}
-                  alt={entry.alt || entry.caption || "Field journal image"}
-                  loading="lazy"
-                  className="block w-full"
-                />
-              )}
-
-              {entry.caption && (
-                <p className="mt-2 max-w-sm font-sabon text-[13px] leading-5 text-[#1f1a13]/65">
-                  {entry.caption}
-                </p>
-              )}
-            </article>
-          ))}
-        </section>
+        <FieldJournalStack entries={entries} />
       ) : (
-        <section className="grid gap-8 md:grid-cols-12">
-          <div className="md:col-start-4 md:col-span-6">
-            <p className="font-sabon text-[15px] leading-6 text-[#1f1a13]/70 md:text-base"></p>
-          </div>
+        <section className="flex min-h-screen items-center justify-center px-4">
+          <p className="max-w-sm text-center font-sabon text-[15px] leading-6 text-[#1f1a13]/70">
+            No field journal images yet. Add entries in Sanity and they will
+            appear here automatically.
+          </p>
         </section>
       )}
     </main>
