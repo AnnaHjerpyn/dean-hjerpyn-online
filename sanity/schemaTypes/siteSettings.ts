@@ -46,6 +46,28 @@ export const siteSettingsType = defineType({
       },
     },
     {
+      name: "cvImages",
+      title: "CV Page Images",
+      description:
+        "Upload exported images of the CV pages. These display directly on the site.",
+      type: "array",
+      of: [
+        {
+          type: "image",
+          options: {
+            hotspot: false,
+          },
+          fields: [
+            {
+              name: "alt",
+              title: "Alternative Text",
+              type: "string",
+            },
+          ],
+        },
+      ],
+    },
+    {
       name: "plantDrawings",
       title: "Landing Page Plant Drawings",
       description:
