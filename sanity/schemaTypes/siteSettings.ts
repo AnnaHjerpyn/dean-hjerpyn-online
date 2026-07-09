@@ -37,6 +37,15 @@ export const siteSettingsType = defineType({
       type: "url",
     },
     {
+      name: "cvFile",
+      title: "CV / Resume PDF",
+      description: "Upload the PDF that should appear on the CV page.",
+      type: "file",
+      options: {
+        accept: "application/pdf",
+      },
+    },
+    {
       name: "plantDrawings",
       title: "Landing Page Plant Drawings",
       description:

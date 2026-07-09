@@ -59,18 +59,6 @@ export default async function Home() {
         plantDrawings={settings?.plantDrawings || []}
       />
 
-      {/* Practice statement */}
-      <section className="mt-24 grid gap-7 md:mt-40 md:grid-cols-12">
-        <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] md:col-span-3">
-          Practice
-        </p>
-
-        <p className="font-sabon text-[1.75rem] font-normal leading-[1.02] tracking-[-0.035em] md:col-span-9 md:text-[clamp(2.25rem,3.25vw,3.5rem)]">
-          Site, soil, water, plants, time, maintenance, and human use are
-          treated as one connected design language.
-        </p>
-      </section>
-
       {/* CMS-managed About */}
       <section
         id="about"

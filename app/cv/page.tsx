@@ -1,9 +1,31 @@
 import Link from "next/link";
+import { client } from "@/sanity/lib/client";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default function CVPage() {
+type SiteSettings = {
+  cvFileUrl?: string;
+  cvFileName?: string;
+};
+
+async function getSiteSettings(): Promise<SiteSettings | null> {
+  return client.fetch(
+    `
+      *[_type == "siteSettings"][0] {
+        "cvFileUrl": cvFile.asset->url,
+        "cvFileName": cvFile.asset->originalFilename
+      }
+    `,
+    {},
+    { cache: "no-store" }
+  );
+}
+
+export default async function CVPage() {
+  const settings = await getSiteSettings();
+  const cvFileUrl = settings?.cvFileUrl;
+
   return (
     <main className="min-h-screen bg-white px-4 pb-5 pt-28 text-[#1f1a13] md:px-8 md:pb-8 md:pt-36">
       <header>
@@ -54,6 +76,41 @@ export default function CVPage() {
         <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] md:col-span-3">
           CV
         </p>
+
+        <div className="md:col-span-9">
+          {cvFileUrl ? (
+            <>
+              <div className="mb-4 flex gap-5 font-editorial text-[9px] font-normal uppercase tracking-[0.16em]">
+                <a
+                  href={cvFileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-opacity hover:opacity-50"
+                >
+                  Open
+                </a>
+
+                <a
+                  href={cvFileUrl}
+                  download={settings?.cvFileName || "dean-hjerpyn-cv.pdf"}
+                  className="transition-opacity hover:opacity-50"
+                >
+                  Download
+                </a>
+              </div>
+
+              <iframe
+                src={cvFileUrl}
+                title="Dean Hjerpyn CV"
+                className="h-[78vh] w-full border border-[#1f1a13]/15"
+              />
+            </>
+          ) : (
+            <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] opacity-60">
+              CV coming soon.
+            </p>
+          )}
+        </div>
       </section>
     </main>
   );
