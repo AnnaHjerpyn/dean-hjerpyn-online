@@ -24,6 +24,9 @@ export default async function CVPage() {
   const settings = await getSiteSettings();
   const email = settings?.email || "hello@example.com";
 
+  const headingClass =
+    "mb-6 border-b border-black/30 pb-2 font-editorial text-[13px] font-normal tracking-[-0.02em]";
+
   return (
     <main className="relative min-h-screen bg-white px-6 py-20 text-black">
       <header className="fixed left-8 top-8 z-50 md:left-20 md:top-16">
@@ -43,9 +46,7 @@ export default async function CVPage() {
 
       <section className="mx-auto mt-[8vh] w-full max-w-[430px] font-sabon text-[10px] font-normal leading-[1.12] tracking-[-0.01em] md:mt-[10vh]">
         <div className="mb-20">
-          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
-            Education
-          </h2>
+          <h2 className={headingClass}>Education</h2>
 
           <div className="mb-8">
             <p>The Ohio State University in Columbus, Ohio</p>
@@ -64,9 +65,7 @@ export default async function CVPage() {
         </div>
 
         <div className="mb-20">
-          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
-            Experience
-          </h2>
+          <h2 className={headingClass}>Experience</h2>
 
           <div className="mb-12">
             <p>Graduate Research Associate | Fall of 2025 – present</p>
@@ -263,9 +262,7 @@ export default async function CVPage() {
         </div>
 
         <div className="mb-20">
-          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
-            Awards
-          </h2>
+          <h2 className={headingClass}>Awards</h2>
 
           <div className="space-y-4">
             <p>
@@ -282,9 +279,7 @@ export default async function CVPage() {
         </div>
 
         <div>
-          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
-            Special Skills
-          </h2>
+          <h2 className={headingClass}>Special Skills</h2>
 
           <ul className="list-disc space-y-1 pl-8">
             <li>Adobe Creative Cloud</li>
