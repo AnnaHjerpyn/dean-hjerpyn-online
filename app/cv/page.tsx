@@ -4,27 +4,15 @@ import { client } from "@/sanity/lib/client";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type CvImage = {
-  url: string;
-  alt?: string;
-};
-
 type SiteSettings = {
-  cvFileUrl?: string;
-  cvFileName?: string;
-  cvImages?: CvImage[];
+  email?: string;
 };
 
 async function getSiteSettings(): Promise<SiteSettings | null> {
   return client.fetch(
     `
       *[_type == "siteSettings"][0] {
-        "cvFileUrl": cvFile.asset->url,
-        "cvFileName": cvFile.asset->originalFilename,
-        "cvImages": cvImages[] {
-          "url": asset->url,
-          alt
-        }
+        email
       }
     `,
     {},
@@ -34,100 +22,99 @@ async function getSiteSettings(): Promise<SiteSettings | null> {
 
 export default async function CVPage() {
   const settings = await getSiteSettings();
-  const cvFileUrl = settings?.cvFileUrl;
-  const cvImages = settings?.cvImages || [];
+  const email = settings?.email || "hello@example.com";
 
   return (
-    <main className="min-h-screen bg-white px-4 pb-8 pt-28 text-[#1f1a13] md:px-8 md:pb-12 md:pt-36">
-      <header>
-        <Link
-          href="/"
-          aria-label="Dean Hjerpyn homepage"
-          className="fixed left-4 top-4 z-50 block text-[#1f1a13] md:left-8 md:top-8"
-        >
-          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
-            Dean
-          </span>
-
-          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
-            Hjerpyn
-          </span>
+    <main className="relative min-h-screen bg-white px-6 py-20 text-black">
+      <header className="fixed left-8 top-8 z-50 md:left-20 md:top-16">
+        <Link href="/" aria-label="Dean Hjerpyn homepage" className="block">
+          <h1 className="font-editorial text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] md:text-[72px]">
+            <span className="block">Dean</span>
+            <span className="block">Hjerpyn</span>
+          </h1>
         </Link>
 
-        <nav className="fixed right-4 top-4 z-50 flex max-w-[62vw] flex-wrap justify-end gap-x-4 gap-y-2 font-editorial text-[8px] font-normal uppercase tracking-[0.15em] text-[#1f1a13] md:right-8 md:top-8 md:max-w-none md:gap-x-7 md:text-[10px]">
-          <Link href="/work" className="transition-opacity hover:opacity-50">
-            Work
-          </Link>
-
-          <Link href="/cv" className="transition-opacity hover:opacity-50">
-            CV
-          </Link>
-
-          <Link
-            href="/field-journal"
-            className="transition-opacity hover:opacity-50"
-          >
-            Field Journal
-          </Link>
-
-          <Link href="/#about" className="transition-opacity hover:opacity-50">
+        <nav className="mt-4 flex flex-col gap-7 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]">
+          <Link href="/about" className="w-fit hover:opacity-50">
             About
           </Link>
 
-          <Link
-            href="/#contact"
-            className="transition-opacity hover:opacity-50"
-          >
+          <a href={`mailto:${email}`} className="w-fit hover:opacity-50">
             Contact
-          </Link>
+          </a>
         </nav>
       </header>
 
-      <section className="grid gap-8 md:grid-cols-12">
-        <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] md:col-span-3">
-          CV
-        </p>
+      <section className="mx-auto mt-[8vh] w-full max-w-[430px] font-sabon text-[10px] font-normal leading-[1.12] tracking-[-0.01em] md:mt-[10vh]">
+        <div className="mb-20">
+          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
+            Education
+          </h2>
 
-        <div className="md:col-span-7 md:col-start-4">
-          {cvImages.length > 0 ? (
-            <>
-              <div className="space-y-8">
-                {cvImages.map((image, index) => (
-                  <img
-                    key={image.url}
-                    src={image.url}
-                    alt={image.alt || `Dean Hjerpyn CV page ${index + 1}`}
-                    className="block w-full bg-white"
-                  />
-                ))}
-              </div>
+          <div className="mb-8">
+            <p>The Ohio State University in Columbus, Ohio</p>
+            <p>Master of Landscape Architecture</p>
+            <p className="pl-6">*Expected Graduation: May 2027</p>
+          </div>
 
-              {cvFileUrl && (
-                <div className="mt-6 flex gap-5 font-editorial text-[9px] font-normal uppercase tracking-[0.16em]">
-                  <a
-                    href={cvFileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="transition-opacity hover:opacity-50"
-                  >
-                    Open
-                  </a>
+          <div>
+            <p>The Ohio State University in Columbus, Ohio</p>
+            <p>Bachelor of Science in Environmental Science</p>
+            <p>Specialization in Ecosystem Restoration</p>
+            <p>Minor in Studio Art</p>
+            <p className="pl-6">Magna Cum Laude</p>
+            <p className="pl-6">Graduated: May 2022</p>
+          </div>
+        </div>
 
-                  <a
-                    href={cvFileUrl}
-                    download={settings?.cvFileName || "dean-hjerpyn-cv.pdf"}
-                    className="transition-opacity hover:opacity-50"
-                  >
-                    Download
-                  </a>
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] opacity-60">
-              CV coming soon.
+        <div className="mb-20">
+          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
+            Experience
+          </h2>
+
+          <div>
+            <p>Graduate Research Associate | Fall of 2025 – present</p>
+            <p>
+              Marilyn Reis, Trott Distinguished Visiting Professor, The Ohio
+              State University
             </p>
-          )}
+
+            <ul className="mt-3 list-disc space-y-1 pl-8">
+              <li>
+                Conducted comprehensive literature reviews on peer-reviewed
+                research and precedent projects to inform design strategies and
+                academic publications
+              </li>
+              <li>
+                Identified gaps in existing research and proposed innovative
+                questions to advance discourse on sustainable and secure
+                conscious design
+              </li>
+              <li>
+                Developed visual communication techniques, including conceptual
+                and technical drawing styles, to enhance project presentations
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="mb-6 font-editorial text-[13px] font-normal tracking-[-0.02em]">
+            Awards
+          </h2>
+
+          <div className="space-y-4">
+            <p>
+              <span className="mr-6">2026:</span>
+              Katharine M. Grosscup Scholarships in Horticulture, The Garden
+              Club of America
+            </p>
+
+            <p>
+              <span className="mr-6">2024:</span>
+              Studio Award, Fall semester, Knowlton School
+            </p>
+          </div>
         </div>
       </section>
     </main>

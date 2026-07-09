@@ -27,7 +27,7 @@ const wordsContainer = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.15,
+      delayChildren: 0.2,
       staggerChildren: 0.025,
     },
   },
@@ -42,7 +42,32 @@ const wordAnimation = {
     y: "0%",
     opacity: 1,
     transition: {
-      duration: 0.7,
+      duration: 0.75,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  },
+};
+
+const linkContainer = {
+  hidden: {},
+  visible: {
+    transition: {
+      delayChildren: 0.8,
+      staggerChildren: 0.12,
+    },
+  },
+};
+
+const linkAnimation = {
+  hidden: {
+    opacity: 0,
+    y: 10,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.65,
       ease: [0.22, 1, 0.36, 1] as const,
     },
   },
@@ -62,7 +87,6 @@ export default function AnimatedHero({
   useLayoutEffect(() => {
     const measureDean = () => {
       if (!deanRef.current) return;
-
       setDeanWidth(deanRef.current.getBoundingClientRect().width);
     };
 
@@ -99,41 +123,38 @@ export default function AnimatedHero({
     [0, shouldReduceMotion ? 0 : deanWidth]
   );
 
-  const introY = useTransform(
+  const headlineY = useTransform(
     smoothProgress,
     [0, 1],
     [0, shouldReduceMotion ? 0 : -90]
   );
 
-  const introScale = useTransform(
+  const headlineScale = useTransform(
     smoothProgress,
     [0, 1],
     [1, shouldReduceMotion ? 1 : 0.97]
   );
 
-  const introOpacity = useTransform(
+  const headlineOpacity = useTransform(
     smoothProgress,
     [0, 0.75, 1],
-    [1, 0.85, 0.35]
-  );
-
-  const locationX = useTransform(
-    smoothProgress,
-    [0, 1],
-    [0, shouldReduceMotion ? 0 : 35]
+    [1, 0.82, 0.35]
   );
 
   const words = headline.trim().split(/\s+/);
 
   return (
-    <>
-      <header>
-        <Link
-          href="/"
-          aria-label="Dean Hjerpyn homepage"
-          className="fixed left-4 top-4 z-50 block mix-blend-difference text-white md:left-8 md:top-8"
-        >
-          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+    <section
+      ref={sectionRef}
+      className="relative min-h-screen overflow-hidden bg-white text-black"
+    >
+      {/* Botanical background */}
+      <PlantGarden drawings={plantDrawings} />
+
+      {/* Left identity / navigation */}
+      <header className="fixed left-8 top-8 z-50 md:left-20 md:top-16">
+        <Link href="/" aria-label="Dean Hjerpyn homepage" className="block">
+          <span className="block overflow-visible font-editorial text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] md:text-[76px]">
             <span ref={deanRef} className="inline-block">
               Dean
             </span>
@@ -141,69 +162,53 @@ export default function AnimatedHero({
 
           <motion.span
             style={{ x: hjerpynX }}
-            className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] will-change-transform md:text-[3.2vw]"
+            className="block font-editorial text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] will-change-transform md:text-[76px]"
           >
             Hjerpyn
           </motion.span>
         </Link>
 
         <motion.nav
-          initial={shouldReduceMotion ? false : { opacity: 0, y: -12 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            duration: shouldReduceMotion ? 0 : 0.7,
+            duration: shouldReduceMotion ? 0 : 0.75,
             delay: shouldReduceMotion ? 0 : 0.45,
             ease: [0.22, 1, 0.36, 1],
           }}
-          className="fixed right-4 top-4 z-50 flex max-w-[62vw] flex-wrap justify-end gap-x-4 gap-y-2 font-editorial text-[8px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:max-w-none md:gap-x-7 md:text-[10px]"
+          className="mt-4 flex flex-col gap-8 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]"
         >
-          <Link href="/work" className="transition-opacity hover:opacity-50">
-            Work
-          </Link>
-
-          <Link href="/cv" className="transition-opacity hover:opacity-50">
-            CV
-          </Link>
-
-          <Link
-            href="/field-journal"
-            className="transition-opacity hover:opacity-50"
+          <a
+            href="#about"
+            className="w-fit transition-opacity hover:opacity-50"
           >
-            Field Journal
-          </Link>
-
-          <a href="#about" className="transition-opacity hover:opacity-50">
             About
           </a>
 
           <a
             href={`mailto:${email}`}
-            className="transition-opacity hover:opacity-50"
+            className="w-fit transition-opacity hover:opacity-50"
           >
             Contact
           </a>
         </motion.nav>
       </header>
 
-      <section
-        ref={sectionRef}
-        className="relative min-h-[82svh] overflow-hidden pb-10 pt-28 md:pb-14 md:pt-36"
-      >
-        <PlantGarden drawings={plantDrawings} />
-
+      {/* Center headline / page navigation */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
         <motion.div
           style={{
-            y: introY,
-            scale: introScale,
-            opacity: introOpacity,
+            y: headlineY,
+            scale: headlineScale,
+            opacity: headlineOpacity,
           }}
-          className="relative z-10 ml-auto flex min-h-[62svh] w-full origin-bottom-right flex-col justify-end will-change-transform md:w-[68%]"
+          className="w-full max-w-[760px] translate-y-[12vh] will-change-transform md:translate-x-[8vw] md:translate-y-[14vh]"
         >
           <motion.p
             variants={wordsContainer}
             initial={shouldReduceMotion ? "visible" : "hidden"}
             animate="visible"
-            className="font-sabon text-[clamp(1.65rem,2.65vw,3.1rem)] font-normal leading-[1.02] tracking-[-0.04em]"
+            className="font-sabon text-[27px] font-normal leading-[1.05] tracking-[-0.035em] md:text-[36px]"
           >
             {words.map((word, index) => (
               <span
@@ -217,21 +222,41 @@ export default function AnimatedHero({
             ))}
           </motion.p>
 
-          <motion.p
-            style={{ x: locationX }}
-            initial={shouldReduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{
-              duration: shouldReduceMotion ? 0 : 0.7,
-              delay: shouldReduceMotion ? 0 : 1,
-              ease: "easeOut",
-            }}
-            className="mt-9 font-editorial text-[8px] font-normal uppercase tracking-[0.17em] will-change-transform md:mt-12 md:text-[9px]"
+          <motion.nav
+            variants={linkContainer}
+            initial={shouldReduceMotion ? "visible" : "hidden"}
+            animate="visible"
+            className="mt-6 flex flex-col gap-5 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]"
           >
-            Columbus, Ohio / Landscape Architecture
-          </motion.p>
+            <motion.div variants={linkAnimation}>
+              <Link
+                href="/work"
+                className="w-fit transition-opacity hover:opacity-50"
+              >
+                Work
+              </Link>
+            </motion.div>
+
+            <motion.div variants={linkAnimation}>
+              <Link
+                href="/field-journal"
+                className="w-fit transition-opacity hover:opacity-50"
+              >
+                Field Journal
+              </Link>
+            </motion.div>
+
+            <motion.div variants={linkAnimation}>
+              <Link
+                href="/cv"
+                className="w-fit transition-opacity hover:opacity-50"
+              >
+                CV
+              </Link>
+            </motion.div>
+          </motion.nav>
         </motion.div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useMemo, useState } from "react";
 
 type PlantDrawing = {
   url: string;
@@ -11,121 +11,93 @@ type PlantGardenProps = {
   drawings?: PlantDrawing[];
 };
 
-const positions = [
-  {
-    left: "1%",
-    bottom: "-4%",
-    width: "clamp(150px, 21vw, 360px)",
-    rotate: -5,
-  },
-  {
-    left: "17%",
-    bottom: "-7%",
-    width: "clamp(130px, 18vw, 300px)",
-    rotate: 4,
-  },
-  {
-    left: "38%",
-    bottom: "-6%",
-    width: "clamp(160px, 24vw, 390px)",
-    rotate: -2,
-  },
-  {
-    right: "18%",
-    bottom: "-8%",
-    width: "clamp(140px, 19vw, 320px)",
-    rotate: 5,
-  },
-  {
-    right: "-2%",
-    bottom: "-5%",
-    width: "clamp(160px, 23vw, 380px)",
-    rotate: -4,
-  },
-];
-
 export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
-  const reduceMotion = useReducedMotion();
+  const [mouse, setMouse] = useState({
+    x: 0,
+    y: 0,
+    active: false,
+  });
 
-  if (drawings.length === 0) {
-    return null;
-  }
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      setMouse({
+        x: event.clientX,
+        y: event.clientY,
+        active: true,
+      });
+    };
+
+    const handlePointerLeave = () => {
+      setMouse((current) => ({
+        ...current,
+        active: false,
+      }));
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    document.documentElement.addEventListener("mouseleave", handlePointerLeave);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      document.documentElement.removeEventListener(
+        "mouseleave",
+        handlePointerLeave
+      );
+    };
+  }, []);
+
+  const eraseMask = useMemo(() => {
+    if (!mouse.active) {
+      return "none";
+    }
+
+    return `radial-gradient(circle 145px at ${mouse.x}px ${mouse.y}px, transparent 0%, transparent 42%, black 72%, black 100%)`;
+  }, [mouse.x, mouse.y, mouse.active]);
+
+  const maskStyle = {
+    WebkitMaskImage: eraseMask,
+    maskImage: eraseMask,
+  };
+
+  const positions = [
+    "left-[-4vw] top-[-6vh] w-[34vw]",
+    "left-[15vw] top-[-4vh] w-[30vw]",
+    "left-[40vw] top-[-8vh] w-[32vw]",
+    "right-[-4vw] top-[-4vh] w-[34vw]",
+
+    "left-[-6vw] top-[25vh] w-[34vw]",
+    "left-[18vw] top-[24vh] w-[35vw]",
+    "right-[22vw] top-[22vh] w-[35vw]",
+    "right-[-5vw] top-[25vh] w-[34vw]",
+
+    "left-[-2vw] bottom-[-8vh] w-[36vw]",
+    "left-[28vw] bottom-[-11vh] w-[37vw]",
+    "right-[-4vw] bottom-[-8vh] w-[36vw]",
+  ];
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+      style={maskStyle}
     >
-      {drawings.map((drawing, index) => {
-        const position = positions[index % positions.length];
-
-        return (
-          <motion.div
-            key={`${drawing.url}-${index}`}
-            className="absolute origin-bottom will-change-transform"
-            style={{
-              left: position.left,
-              right: position.right,
-              bottom: position.bottom,
-              width: position.width,
-            }}
-            initial={
-              reduceMotion
-                ? false
-                : {
-                    opacity: 0,
-                    y: 180,
-                    scale: 0.72,
-                    rotate: position.rotate - 5,
-                  }
-            }
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              rotate: [
-                position.rotate,
-                position.rotate + 1.5,
-                position.rotate - 1,
-                position.rotate,
-              ],
-            }}
-            transition={
-              reduceMotion
-                ? { duration: 0 }
-                : {
-                    opacity: {
-                      duration: 0.8,
-                      delay: 0.4 + index * 0.14,
-                    },
-                    y: {
-                      duration: 1.2,
-                      delay: 0.25 + index * 0.14,
-                      ease: [0.22, 1, 0.36, 1],
-                    },
-                    scale: {
-                      duration: 1.2,
-                      delay: 0.25 + index * 0.14,
-                      ease: [0.22, 1, 0.36, 1],
-                    },
-                    rotate: {
-                      duration: 7 + index,
-                      delay: 1.5 + index * 0.1,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
-                  }
-            }
-          >
+      {drawings.length > 0 ? (
+        <div className="relative h-full w-full">
+          {drawings.map((drawing, index) => (
             <img
+              key={`${drawing.url}-${index}`}
               src={drawing.url}
-              alt=""
-              className="block h-auto w-full object-contain"
+              alt={drawing.alt || ""}
+              className={`absolute ${
+                positions[index % positions.length]
+              } max-w-none select-none object-contain opacity-[0.38] grayscale`}
               draggable={false}
             />
-          </motion.div>
-        );
-      })}
+          ))}
+        </div>
+      ) : (
+        <div className="h-full w-full bg-[url('/botanical-bg.png')] bg-cover bg-center bg-no-repeat opacity-100 grayscale" />
+      )}
     </div>
   );
 }
