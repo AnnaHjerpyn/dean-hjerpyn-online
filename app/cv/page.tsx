@@ -35,10 +35,6 @@ export default async function CVPage() {
         </Link>
 
         <nav className="mt-4 flex flex-col gap-7 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]">
-          <Link href="/about" className="w-fit hover:opacity-50">
-            About
-          </Link>
-
           <a href={`mailto:${email}`} className="w-fit hover:opacity-50">
             Contact
           </a>

@@ -90,10 +90,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <Link href="/#work" className="transition-opacity hover:opacity-50">
           Index
         </Link>
-
-        <Link href="/#about" className="transition-opacity hover:opacity-50">
-          About
-        </Link>
       </nav>
 
       {/* Cover image */}
