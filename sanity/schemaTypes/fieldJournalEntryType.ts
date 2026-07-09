@@ -26,7 +26,6 @@ export const fieldJournalEntryType = defineType({
       name: "caption",
       title: "Caption",
       type: "text",
-      rows: 2,
     }),
 
     defineField({
