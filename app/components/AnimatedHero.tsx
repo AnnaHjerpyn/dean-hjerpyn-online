@@ -184,6 +184,12 @@ export default function AnimatedHero({
           >
             Contact
           </a>
+          <Link
+            href="/cv"
+            className="w-fit transition-opacity hover:opacity-50"
+          >
+            CV
+          </Link>
         </motion.nav>
       </header>
 
@@ -236,15 +242,6 @@ export default function AnimatedHero({
                 className="w-fit transition-opacity hover:opacity-50"
               >
                 Field Journal
-              </Link>
-            </motion.div>
-
-            <motion.div variants={linkAnimation}>
-              <Link
-                href="/cv"
-                className="w-fit transition-opacity hover:opacity-50"
-              >
-                CV
               </Link>
             </motion.div>
           </motion.nav>
