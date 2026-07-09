@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { client } from "@/sanity/lib/client";
+import WorkGridCursor from "../components/WorkGridCursor";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
