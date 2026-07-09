@@ -80,17 +80,7 @@ export default async function FieldJournalPage() {
         </nav>
       </header>
 
-      <section className="mb-16 grid gap-8 md:grid-cols-12">
-        <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] md:col-span-3">
-          Field Journal
-        </p>
-
-        <div className="md:col-span-9">
-          <h1 className="max-w-5xl font-sabon text-[2.5rem] font-normal leading-[1] tracking-[-0.04em] md:text-[clamp(4rem,7vw,8rem)]">
-            Notes from the field.
-          </h1>
-        </div>
-      </section>
+      <section className="mb-16 grid gap-8 md:grid-cols-12"></section>
 
       {entries.length > 0 ? (
         <section className="columns-1 gap-4 sm:columns-2 md:columns-3 xl:columns-4">
