@@ -116,10 +116,7 @@ export default async function FieldJournalPage() {
       ) : (
         <section className="grid gap-8 md:grid-cols-12">
           <div className="md:col-start-4 md:col-span-6">
-            <p className="font-sabon text-[15px] leading-6 text-[#1f1a13]/70 md:text-base">
-              Upload field journal images in Sanity Studio to begin building the
-              archive.
-            </p>
+            <p className="font-sabon text-[15px] leading-6 text-[#1f1a13]/70 md:text-base"></p>
           </div>
         </section>
       )}
