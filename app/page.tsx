@@ -60,49 +60,6 @@ export default async function Home() {
       />
 
       {/* CMS-managed About */}
-      <section
-        id="about"
-        className="mt-32 grid scroll-mt-24 gap-7 md:mt-48 md:grid-cols-12"
-      >
-        <p className="font-editorial text-[9px] font-normal uppercase tracking-[0.16em] md:col-span-3">
-          About
-        </p>
-
-        <div className="space-y-8 md:col-span-9">
-          <p className="max-w-4xl font-sabon text-[1.75rem] font-normal leading-[1.04] tracking-[-0.03em] md:text-[clamp(2.1rem,2.8vw,3rem)]">
-            {settings?.aboutHeading ||
-              "Dean Hjerpyn is a landscape designer working across planted spaces, ecological systems, and site-specific environments."}
-          </p>
-
-          <p className="max-w-xl font-sabon text-[15px] font-normal leading-6 text-[#1f1a13]/70 md:text-base">
-            {settings?.aboutBody ||
-              "Her work explores the relationship between people, plants, material, maintenance, and time. This portfolio gathers selected projects, field observations, design studies, and landscape research."}
-          </p>
-
-          <div
-            id="contact"
-            className="flex flex-wrap gap-6 font-editorial text-[9px] font-normal uppercase tracking-[0.14em]"
-          >
-            <a
-              href={`mailto:${email}`}
-              className="border-b border-current pb-1 transition-opacity hover:opacity-50"
-            >
-              Email Dean
-            </a>
-
-            {settings?.instagram && (
-              <a
-                href={settings.instagram}
-                target="_blank"
-                rel="noreferrer"
-                className="border-b border-current pb-1 transition-opacity hover:opacity-50"
-              >
-                Instagram
-              </a>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="mt-32 flex items-end justify-between border-t border-[#1f1a13] pt-4 font-editorial text-[8px] font-normal uppercase tracking-[0.14em] md:mt-48 md:text-[9px]">
