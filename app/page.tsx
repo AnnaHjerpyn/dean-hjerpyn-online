@@ -59,8 +59,6 @@ export default async function Home() {
         plantDrawings={settings?.plantDrawings || []}
       />
 
-      {/* CMS-managed About */}
-
       {/* Footer */}
       <footer className="mt-32 flex items-end justify-between border-t border-[#1f1a13] pt-4 font-editorial text-[8px] font-normal uppercase tracking-[0.14em] md:mt-48 md:text-[9px]">
         <p>© {currentYear}</p>
