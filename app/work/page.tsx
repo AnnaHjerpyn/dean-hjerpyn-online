@@ -103,10 +103,6 @@ export default async function WorkPage() {
             Field Journal
           </Link>
 
-          <Link href="/#about" className="transition-opacity hover:opacity-50">
-            About
-          </Link>
-
           <Link
             href="/#contact"
             className="transition-opacity hover:opacity-50"

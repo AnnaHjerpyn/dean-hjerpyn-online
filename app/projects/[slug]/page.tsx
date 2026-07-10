@@ -265,7 +265,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {/* Bottom navigation */}
       <footer className="px-4 pb-6 md:px-8 md:pb-8">
         <div className="flex items-center justify-between border-t border-[#1f1a13] pt-5 text-[9px] font-normal uppercase tracking-[0.15em] md:text-[10px]">
-          <Link href="/#work" className="transition-opacity hover:opacity-50">
+          <Link href="/work" className="transition-opacity hover:opacity-50">
             ← All projects
           </Link>
 
