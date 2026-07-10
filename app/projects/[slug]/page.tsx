@@ -87,7 +87,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
       {/* Navigation */}
       <nav className="fixed right-4 top-4 z-50 flex gap-4 text-[9px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:gap-7 md:text-[10px]">
-        <Link href="/#work" className="transition-opacity hover:opacity-50">
+        <Link href="/work" className="transition-opacity hover:opacity-50">
           Index
         </Link>
       </nav>
