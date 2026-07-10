@@ -79,10 +79,6 @@ export default async function CVPage() {
           </nav>
 
           <section className="mt-12 pt-5 md:mt-14">
-            <h2 className="font-editorial text-[14px] font-normal uppercase tracking-[0.06em] md:text-[15px]">
-              About Me
-            </h2>
-
             <div className="mt-6 max-w-[360px] font-sabon text-[13px] font-normal leading-[1.45] tracking-[-0.01em] md:text-[14px]">
               {settings?.aboutHeading && (
                 <p className="mb-5 font-editorial text-[16px] font-normal leading-[1.25] tracking-[-0.025em] md:text-[17px]">
