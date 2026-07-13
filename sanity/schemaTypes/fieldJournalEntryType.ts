@@ -1,3 +1,5 @@
+// sanity/schemaTypes/fieldJournalEntryType.ts
+
 import { defineField, defineType } from "sanity";
 
 export const fieldJournalEntryType = defineType({
@@ -7,24 +9,112 @@ export const fieldJournalEntryType = defineType({
 
   fields: [
     defineField({
+      name: "mediaType",
+      title: "Media Type",
+      type: "string",
+      initialValue: "image",
+
+      options: {
+        layout: "radio",
+        list: [
+          {
+            title: "Image",
+            value: "image",
+          },
+          {
+            title: "Video",
+            value: "video",
+          },
+          {
+            title: "PDF",
+            value: "pdf",
+          },
+        ],
+      },
+
+      validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
       name: "image",
       title: "Image",
       type: "image",
+
       options: {
         hotspot: true,
       },
-      validation: (Rule) => Rule.required(),
+
+      hidden: ({ document }) =>
+        Boolean(document?.mediaType && document.mediaType !== "image"),
+
+      validation: (Rule) =>
+        Rule.custom((image, context) => {
+          const mediaType = context.document?.mediaType;
+
+          // Existing entries without mediaType are treated as images.
+          if (!mediaType || mediaType === "image") {
+            return image ? true : "An image is required.";
+          }
+
+          return true;
+        }),
+    }),
+
+    defineField({
+      name: "video",
+      title: "Video",
+      type: "file",
+
+      options: {
+        accept: "video/mp4,video/webm,video/quicktime",
+      },
+
+      hidden: ({ document }) => document?.mediaType !== "video",
+
+      validation: (Rule) =>
+        Rule.custom((video, context) => {
+          if (context.document?.mediaType === "video") {
+            return video ? true : "A video file is required.";
+          }
+
+          return true;
+        }),
+    }),
+
+    defineField({
+      name: "pdf",
+      title: "PDF",
+      type: "file",
+
+      options: {
+        accept: "application/pdf",
+      },
+
+      hidden: ({ document }) => document?.mediaType !== "pdf",
+
+      validation: (Rule) =>
+        Rule.custom((pdf, context) => {
+          if (context.document?.mediaType === "pdf") {
+            return pdf ? true : "A PDF file is required.";
+          }
+
+          return true;
+        }),
     }),
 
     defineField({
       name: "alt",
       title: "Alt Text",
+      description: "Describe the image for accessibility.",
       type: "string",
+
+      hidden: ({ document }) =>
+        Boolean(document?.mediaType && document.mediaType !== "image"),
     }),
 
     defineField({
       name: "caption",
-      title: "Caption",
+      title: "Caption / Notes",
       type: "text",
     }),
 
@@ -37,15 +127,31 @@ export const fieldJournalEntryType = defineType({
 
   preview: {
     select: {
-      title: "caption",
-      media: "image",
+      caption: "caption",
       date: "date",
+      mediaType: "mediaType",
+      image: "image",
+      videoFilename: "video.asset.originalFilename",
+      pdfFilename: "pdf.asset.originalFilename",
     },
-    prepare({ title, media, date }) {
+
+    prepare({ caption, date, mediaType, image, videoFilename, pdfFilename }) {
+      const resolvedMediaType = mediaType || "image";
+
+      let fallbackTitle = "Field Journal Image";
+
+      if (resolvedMediaType === "video") {
+        fallbackTitle = videoFilename || "Field Journal Video";
+      }
+
+      if (resolvedMediaType === "pdf") {
+        fallbackTitle = pdfFilename || "Field Journal PDF";
+      }
+
       return {
-        title: title || "Field Journal Image",
-        subtitle: date || "No date",
-        media,
+        title: caption || fallbackTitle,
+        subtitle: `${date || "No date"} · ${resolvedMediaType.toUpperCase()}`,
+        media: resolvedMediaType === "image" ? image : undefined,
       };
     },
   },
