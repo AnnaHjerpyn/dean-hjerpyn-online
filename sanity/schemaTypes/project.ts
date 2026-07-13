@@ -99,7 +99,7 @@ export const projectType = defineType({
 
       of: [
         {
-          name: "galleryImage",
+          name: "image",
           title: "Image",
           type: "image",
 
