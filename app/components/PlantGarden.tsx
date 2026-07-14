@@ -55,7 +55,9 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
   const visibleDrawings = useMemo(() => {
     if (drawings.length === 0) return [];
 
-    return placements.map((_, index) => drawings[index % drawings.length]);
+    return placements.map((_, index) => {
+      return drawings[index % drawings.length];
+    });
   }, [drawings]);
 
   useEffect(() => {
@@ -106,15 +108,9 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
             const isHidden = hiddenPlants.has(index);
 
             return (
-              <img
+              <div
                 key={`${drawing.url}-${index}`}
-                ref={(element) => {
-                  imageRefs.current[index] = element;
-                }}
-                src={drawing.url}
-                alt={drawing.alt || ""}
-                draggable={false}
-                className="pointer-events-none absolute max-w-none select-none object-contain grayscale transition-opacity duration-150"
+                className="plant-load-in pointer-events-none absolute max-w-none"
                 style={{
                   left: placement.left,
                   right: placement.right,
@@ -122,13 +118,53 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
                   bottom: placement.bottom,
                   width: placement.width,
                   transform: `rotate(${placement.rotate})`,
-                  opacity: isHidden ? 0 : 1,
-                  filter: "grayscale(1) contrast(1.45) brightness(0.55)",
-                  mixBlendMode: "multiply",
+                  animationDelay: `${200 + index * 90}ms`,
                 }}
-              />
+              >
+                <img
+                  ref={(element) => {
+                    imageRefs.current[index] = element;
+                  }}
+                  src={drawing.url}
+                  alt={drawing.alt || ""}
+                  draggable={false}
+                  className="pointer-events-none block h-auto w-full select-none object-contain grayscale transition-opacity duration-150"
+                  style={{
+                    opacity: isHidden ? 0 : 1,
+                    filter: "grayscale(1) contrast(1.45) brightness(0.55)",
+                    mixBlendMode: "multiply",
+                  }}
+                />
+              </div>
             );
           })}
+
+          <style>{`
+            .plant-load-in {
+              opacity: 0;
+              animation-name: plant-load-in;
+              animation-duration: 1.4s;
+              animation-timing-function: ease-out;
+              animation-fill-mode: forwards;
+            }
+
+            @keyframes plant-load-in {
+              from {
+                opacity: 0;
+              }
+
+              to {
+                opacity: 1;
+              }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+              .plant-load-in {
+                opacity: 1;
+                animation: none;
+              }
+            }
+          `}</style>
         </div>
       ) : (
         <div className="h-full w-full bg-[url('/botanical-bg.png')] bg-cover bg-center bg-no-repeat grayscale" />
