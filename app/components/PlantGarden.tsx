@@ -23,7 +23,7 @@ type PlantPlacement = {
   popOrder: number;
 };
 
-const PLANT_COUNT = 200;
+const PLANT_COUNT = 115;
 const PLANT_INTERVAL = 100;
 
 /*
@@ -32,8 +32,8 @@ const PLANT_INTERVAL = 100;
 */
 const PLANT_RETURN_DELAY = 700;
 
-const MAX_PLANT_WIDTH = 130;
-const MAX_PLANT_HEIGHT = 210;
+const MAX_PLANT_WIDTH = 150;
+const MAX_PLANT_HEIGHT = 270;
 
 function createSeededRandom(seed: number) {
   let value = seed;
