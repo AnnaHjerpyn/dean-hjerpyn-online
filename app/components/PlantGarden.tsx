@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type PlantDrawing = {
   url: string;
@@ -23,8 +23,14 @@ type PlantPlacement = {
   popOrder: number;
 };
 
-const PLANT_COUNT = 250;
+const PLANT_COUNT = 200;
 const PLANT_INTERVAL = 100;
+
+/*
+  How long a flower stays hidden after being touched.
+  Increase this number for a longer delay.
+*/
+const PLANT_RETURN_DELAY = 700;
 
 const MAX_PLANT_WIDTH = 130;
 const MAX_PLANT_HEIGHT = 210;
@@ -57,9 +63,7 @@ function createPlacements(count: number): PlantPlacement[] {
     return {
       id: index,
 
-      // Positions may reach or extend slightly beyond the viewport edges.
       left: column * cellWidth + cellWidth / 2 + horizontalJitter,
-
       top: row * cellHeight + cellHeight / 2 + verticalJitter,
 
       width: 75 + random() * 55,
@@ -82,6 +86,12 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
     () => new Set()
   );
 
+  /*
+    Stores the return timer for each hidden plant so the same plant
+    cannot accidentally create multiple timers.
+  */
+  const returnTimers = useRef<Map<number, number>>(new Map());
+
   const plants = useMemo(() => {
     if (!drawings.length) {
       return [];
@@ -98,6 +108,12 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
   useEffect(() => {
     setVisibleCount(0);
     setHiddenPlants(new Set());
+
+    returnTimers.current.forEach((timer) => {
+      window.clearTimeout(timer);
+    });
+
+    returnTimers.current.clear();
 
     if (!plants.length) {
       return;
@@ -122,6 +138,44 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
   }, [plants.length]);
 
   useEffect(() => {
+    const hidePlantTemporarily = (plantId: number) => {
+      /*
+        Do nothing if this flower is already hidden and already
+        has a timer scheduled.
+      */
+      if (returnTimers.current.has(plantId)) {
+        return;
+      }
+
+      setHiddenPlants((current) => {
+        if (current.has(plantId)) {
+          return current;
+        }
+
+        const updatedPlants = new Set(current);
+        updatedPlants.add(plantId);
+
+        return updatedPlants;
+      });
+
+      const returnTimer = window.setTimeout(() => {
+        setHiddenPlants((current) => {
+          if (!current.has(plantId)) {
+            return current;
+          }
+
+          const updatedPlants = new Set(current);
+          updatedPlants.delete(plantId);
+
+          return updatedPlants;
+        });
+
+        returnTimers.current.delete(plantId);
+      }, PLANT_RETURN_DELAY);
+
+      returnTimers.current.set(plantId, returnTimer);
+    };
+
     const handlePointerMove = (event: PointerEvent) => {
       const elements = document.elementsFromPoint(event.clientX, event.clientY);
 
@@ -139,22 +193,19 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
         return;
       }
 
-      setHiddenPlants((current) => {
-        if (current.has(plantId)) {
-          return current;
-        }
-
-        const updatedPlants = new Set(current);
-        updatedPlants.add(plantId);
-
-        return updatedPlants;
-      });
+      hidePlantTemporarily(plantId);
     };
 
     window.addEventListener("pointermove", handlePointerMove);
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
+
+      returnTimers.current.forEach((timer) => {
+        window.clearTimeout(timer);
+      });
+
+      returnTimers.current.clear();
     };
   }, []);
 
@@ -195,7 +246,6 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
               justify-center
             "
             style={{
-              // No clamp: flowers can touch and extend past the edges.
               left: `${plant.left}%`,
               top: `${plant.top}%`,
 
