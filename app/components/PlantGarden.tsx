@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type PlantDrawing = {
   url: string;
@@ -12,163 +12,229 @@ type PlantGardenProps = {
 };
 
 type PlantPlacement = {
-  left?: string;
-  right?: string;
-  top?: string;
-  bottom?: string;
-  width: string;
-  rotate: string;
+  id: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  rotate: number;
+  flip: number;
+  zIndex: number;
+  popOrder: number;
 };
 
-const placements: PlantPlacement[] = [
-  { left: "-6vw", top: "-9vh", width: "25vw", rotate: "-8deg" },
-  { left: "8vw", top: "-7vh", width: "18vw", rotate: "6deg" },
-  { left: "21vw", top: "-8vh", width: "28vw", rotate: "-3deg" },
-  { left: "43vw", top: "-9vh", width: "23vw", rotate: "9deg" },
-  { right: "10vw", top: "-8vh", width: "27vw", rotate: "-5deg" },
-  { right: "-5vw", top: "-8vh", width: "25vw", rotate: "8deg" },
+const PLANT_COUNT = 250;
+const PLANT_INTERVAL = 100;
 
-  { left: "-8vw", top: "14vh", width: "30vw", rotate: "7deg" },
-  { left: "9vw", top: "16vh", width: "22vw", rotate: "-10deg" },
-  { left: "27vw", top: "12vh", width: "26vw", rotate: "4deg" },
-  { right: "22vw", top: "13vh", width: "27vw", rotate: "-7deg" },
-  { right: "3vw", top: "14vh", width: "24vw", rotate: "10deg" },
-  { right: "-8vw", top: "16vh", width: "30vw", rotate: "-4deg" },
+const MAX_PLANT_WIDTH = 130;
+const MAX_PLANT_HEIGHT = 210;
 
-  { left: "-7vw", top: "38vh", width: "31vw", rotate: "-6deg" },
-  { left: "13vw", top: "36vh", width: "28vw", rotate: "7deg" },
-  { left: "34vw", top: "34vh", width: "30vw", rotate: "-3deg" },
-  { right: "12vw", top: "36vh", width: "27vw", rotate: "5deg" },
-  { right: "-7vw", top: "37vh", width: "32vw", rotate: "-9deg" },
+function createSeededRandom(seed: number) {
+  let value = seed;
 
-  { left: "-8vw", bottom: "-10vh", width: "32vw", rotate: "5deg" },
-  { left: "12vw", bottom: "-12vh", width: "31vw", rotate: "-8deg" },
-  { left: "35vw", bottom: "-13vh", width: "34vw", rotate: "4deg" },
-  { right: "8vw", bottom: "-10vh", width: "29vw", rotate: "-5deg" },
-  { right: "-8vw", bottom: "-11vh", width: "32vw", rotate: "8deg" },
-];
+  return () => {
+    value = Math.sin(value) * 10000;
+    return value - Math.floor(value);
+  };
+}
+
+function createPlacements(count: number): PlantPlacement[] {
+  const random = createSeededRandom(2847);
+
+  const columns = 11;
+  const rows = Math.ceil(count / columns);
+
+  const cellWidth = 100 / columns;
+  const cellHeight = 100 / rows;
+
+  return Array.from({ length: count }, (_, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+
+    const horizontalJitter = (random() - 0.5) * cellWidth * 1.6;
+    const verticalJitter = (random() - 0.5) * cellHeight * 1.7;
+
+    return {
+      id: index,
+
+      // Positions may reach or extend slightly beyond the viewport edges.
+      left: column * cellWidth + cellWidth / 2 + horizontalJitter,
+
+      top: row * cellHeight + cellHeight / 2 + verticalJitter,
+
+      width: 75 + random() * 55,
+      height: 160 + random() * 120,
+
+      rotate: -16 + random() * 32,
+      flip: random() > 0.5 ? -1 : 1,
+      zIndex: Math.floor(random() * 5) + 1,
+      popOrder: random(),
+    };
+  });
+}
+
+const placements = createPlacements(PLANT_COUNT);
 
 export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
-  const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
-  const [hiddenPlants, setHiddenPlants] = useState<Set<number>>(new Set());
+  const [visibleCount, setVisibleCount] = useState(0);
 
-  const visibleDrawings = useMemo(() => {
-    if (drawings.length === 0) return [];
+  const [hiddenPlants, setHiddenPlants] = useState<Set<number>>(
+    () => new Set()
+  );
 
-    return placements.map((_, index) => {
-      return drawings[index % drawings.length];
-    });
+  const plants = useMemo(() => {
+    if (!drawings.length) {
+      return [];
+    }
+
+    return placements
+      .map((placement, index) => ({
+        ...placement,
+        drawing: drawings[index % drawings.length],
+      }))
+      .sort((a, b) => a.popOrder - b.popOrder);
   }, [drawings]);
 
   useEffect(() => {
-    const handlePointerMove = (event: PointerEvent) => {
-      const nextHiddenPlants = new Set<number>();
+    setVisibleCount(0);
+    setHiddenPlants(new Set());
 
-      imageRefs.current.forEach((image, index) => {
-        if (!image) return;
+    if (!plants.length) {
+      return;
+    }
 
-        const rect = image.getBoundingClientRect();
+    setVisibleCount(Math.min(12, plants.length));
 
-        const isInside =
-          event.clientX >= rect.left &&
-          event.clientX <= rect.right &&
-          event.clientY >= rect.top &&
-          event.clientY <= rect.bottom;
-
-        if (isInside) {
-          nextHiddenPlants.add(index);
+    const interval = window.setInterval(() => {
+      setVisibleCount((current) => {
+        if (current >= plants.length) {
+          window.clearInterval(interval);
+          return current;
         }
+
+        return current + 1;
       });
+    }, PLANT_INTERVAL);
 
-      setHiddenPlants(nextHiddenPlants);
+    return () => {
+      window.clearInterval(interval);
     };
+  }, [plants.length]);
 
-    const handlePointerLeave = () => {
-      setHiddenPlants(new Set());
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const elements = document.elementsFromPoint(event.clientX, event.clientY);
+
+      const hoveredPlant = elements.find((element) =>
+        element.hasAttribute("data-plant-id")
+      );
+
+      if (!hoveredPlant) {
+        return;
+      }
+
+      const plantId = Number(hoveredPlant.getAttribute("data-plant-id"));
+
+      if (Number.isNaN(plantId)) {
+        return;
+      }
+
+      setHiddenPlants((current) => {
+        if (current.has(plantId)) {
+          return current;
+        }
+
+        const updatedPlants = new Set(current);
+        updatedPlants.add(plantId);
+
+        return updatedPlants;
+      });
     };
 
     window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerleave", handlePointerLeave);
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerleave", handlePointerLeave);
     };
   }, []);
+
+  if (!plants.length) {
+    return null;
+  }
 
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-white"
+      className="
+        pointer-events-none
+        fixed
+        inset-0
+        z-0
+        h-[100svh]
+        w-screen
+        overflow-hidden
+        bg-white
+      "
     >
-      {visibleDrawings.length > 0 ? (
-        <div className="relative h-full w-full">
-          {visibleDrawings.map((drawing, index) => {
-            const placement = placements[index];
-            const isHidden = hiddenPlants.has(index);
+      {plants.map((plant, index) => {
+        const hasAppeared = index < visibleCount;
+        const hasDisappeared = hiddenPlants.has(plant.id);
 
-            return (
-              <div
-                key={`${drawing.url}-${index}`}
-                className="plant-load-in pointer-events-none absolute max-w-none"
-                style={{
-                  left: placement.left,
-                  right: placement.right,
-                  top: placement.top,
-                  bottom: placement.bottom,
-                  width: placement.width,
-                  transform: `rotate(${placement.rotate})`,
-                  animationDelay: `${200 + index * 90}ms`,
-                }}
-              >
-                <img
-                  ref={(element) => {
-                    imageRefs.current[index] = element;
-                  }}
-                  src={drawing.url}
-                  alt={drawing.alt || ""}
-                  draggable={false}
-                  className="pointer-events-none block h-auto w-full select-none object-contain grayscale transition-opacity duration-150"
-                  style={{
-                    opacity: isHidden ? 0 : 1,
-                    filter: "grayscale(1) contrast(1.45) brightness(0.55)",
-                    mixBlendMode: "multiply",
-                  }}
-                />
-              </div>
-            );
-          })}
+        if (!hasAppeared || hasDisappeared) {
+          return null;
+        }
 
-          <style>{`
-            .plant-load-in {
-              opacity: 0;
-              animation-name: plant-load-in;
-              animation-duration: 1.4s;
-              animation-timing-function: ease-out;
-              animation-fill-mode: forwards;
-            }
+        return (
+          <div
+            key={`${plant.drawing.url}-${plant.id}`}
+            className="
+              pointer-events-none
+              absolute
+              flex
+              items-center
+              justify-center
+            "
+            style={{
+              // No clamp: flowers can touch and extend past the edges.
+              left: `${plant.left}%`,
+              top: `${plant.top}%`,
 
-            @keyframes plant-load-in {
-              from {
-                opacity: 0;
-              }
+              width: `${plant.width}px`,
+              height: `${plant.height}px`,
 
-              to {
-                opacity: 1;
-              }
-            }
+              maxWidth: `${MAX_PLANT_WIDTH}px`,
+              maxHeight: `${MAX_PLANT_HEIGHT}px`,
 
-            @media (prefers-reduced-motion: reduce) {
-              .plant-load-in {
-                opacity: 1;
-                animation: none;
-              }
-            }
-          `}</style>
-        </div>
-      ) : (
-        <div className="h-full w-full bg-[url('/botanical-bg.png')] bg-cover bg-center bg-no-repeat grayscale" />
-      )}
+              zIndex: plant.zIndex,
+
+              transform: `
+                translate(-50%, -50%)
+                rotate(${plant.rotate}deg)
+                scaleX(${plant.flip})
+              `,
+            }}
+          >
+            <img
+              src={plant.drawing.url}
+              alt=""
+              data-plant-id={plant.id}
+              draggable={false}
+              className="
+                pointer-events-auto
+                block
+                h-full
+                w-full
+                select-none
+                object-contain
+              "
+              style={{
+                filter: "grayscale(1) contrast(1.15)",
+                mixBlendMode: "multiply",
+              }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
