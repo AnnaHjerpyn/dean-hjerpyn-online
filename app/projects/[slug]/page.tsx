@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
@@ -7,8 +8,10 @@ import { client } from "@/sanity/lib/client";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-type GalleryImage = {
+type SanityImage = {
+  _key?: string;
   url: string;
+  alt?: string;
   width?: number;
   height?: number;
 };
@@ -22,8 +25,12 @@ type Project = {
   projectType?: string;
   slug?: string;
   description?: PortableTextBlock[];
-  coverImageUrl?: string;
-  gallery?: GalleryImage[];
+  coverImage?: SanityImage;
+  gallery?: SanityImage[];
+};
+
+type SiteSettings = {
+  email?: string;
 };
 
 type ProjectPageProps = {
@@ -46,9 +53,19 @@ async function getProject(slug: string): Promise<Project | null> {
         role,
         projectType,
         description,
+
         "slug": slug.current,
-        "coverImageUrl": coverImage.asset->url,
+
+        "coverImage": coverImage {
+          alt,
+          "url": asset->url,
+          "width": asset->metadata.dimensions.width,
+          "height": asset->metadata.dimensions.height
+        },
+
         "gallery": gallery[] {
+          _key,
+          alt,
           "url": asset->url,
           "width": asset->metadata.dimensions.width,
           "height": asset->metadata.dimensions.height
@@ -60,216 +77,243 @@ async function getProject(slug: string): Promise<Project | null> {
   );
 }
 
+async function getSiteSettings(): Promise<SiteSettings | null> {
+  return client.fetch(
+    `
+      *[_type == "siteSettings"][0] {
+        email
+      }
+    `,
+    {},
+    { cache: "no-store" }
+  );
+}
+
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = await getProject(slug);
+
+  const [project, settings] = await Promise.all([
+    getProject(slug),
+    getSiteSettings(),
+  ]);
 
   if (!project) {
     notFound();
   }
 
-  return (
-    <main className="min-h-screen bg-white font-editorial font-normal text-[#1f1a13]">
-      {/* Fixed site identity */}
-      <Link
-        href="/"
-        aria-label="Return to homepage"
-        className="fixed left-4 top-4 z-50 mix-blend-difference text-white md:left-8 md:top-8"
-      >
-        <span className="block text-[24px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[2.2vw]">
-          Dean
-        </span>
+  const email = settings?.email || "hello@example.com";
 
-        <span className="ml-[25px] block text-[24px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:ml-[1.8vw] md:text-[2.2vw]">
-          Hjerpyn
-        </span>
-      </Link>
+  const projectDetails = [
+    {
+      label: "Location",
+      value: project.location,
+    },
+    {
+      label: "Year",
+      value: project.year,
+    },
+    {
+      label: "Firm",
+      value: project.firm,
+    },
+    {
+      label: "Role",
+      value: project.role,
+    },
+    {
+      label: "Type",
+      value: project.projectType,
+    },
+  ].filter((detail) => detail.value);
+
+  return (
+    <main className="min-h-screen bg-white text-black">
+      {/* Project heading and navigation */}
+      {/* Sticky project title */}
+      <div className="pointer-events-none sticky top-0 z-40 h-[120px] md:h-[138px]">
+        <div className="px-4 pt-8 md:px-5 md:pt-10">
+          <h1 className="pointer-events-auto w-fit max-w-[calc(100vw-140px)] bg-white pr-3 font-mabrypro text-[clamp(2rem,4vw,4.25rem)] font-semibold lowercase leading-[0.9] tracking-[-0.045em]">
+            {project.title}
+          </h1>
+        </div>
+      </div>
 
       {/* Navigation */}
-      <nav className="fixed right-4 top-4 z-50 flex gap-4 text-[9px] font-normal uppercase tracking-[0.15em] mix-blend-difference text-white md:right-8 md:top-8 md:gap-7 md:text-[10px]">
-        <Link href="/work" className="transition-opacity hover:opacity-50">
-          Index
-        </Link>
-      </nav>
+      <header className="relative -mt-[120px] h-[120px] md:-mt-[138px] md:h-[138px]">
+        <nav className="absolute right-4 top-8 z-50 min-w-[96px] bg-white font-mabrypro text-[9px] font-normal uppercase leading-[1.55] tracking-[0.01em] md:right-5 md:top-10 md:min-w-[112px] md:text-[10px]">
+          <Link
+            href="/"
+            className="block lowercase transition-opacity hover:opacity-45"
+          >
+            dean hjerpyn
+          </Link>
 
-      {/* Cover image */}
-      {project.coverImageUrl && (
-        <section className="h-[70svh] min-h-[500px] w-full md:h-screen">
-          <img
-            src={project.coverImageUrl}
-            alt={project.title}
-            className="h-full w-full object-cover"
+          <Link
+            href="/work"
+            className="block transition-opacity hover:opacity-45"
+          >
+            Work
+          </Link>
+
+          <Link
+            href="/field-journal"
+            className="block transition-opacity hover:opacity-45"
+          >
+            Field Journal
+          </Link>
+
+          <Link
+            href="/cv"
+            className="block transition-opacity hover:opacity-45"
+          >
+            CV
+          </Link>
+
+          <a
+            href={`mailto:${email}`}
+            className="block transition-opacity hover:opacity-45"
+          >
+            Contact
+          </a>
+        </nav>
+      </header>
+
+      {/* Full-width project cover */}
+      {project.coverImage?.url && (
+        <section className="relative aspect-[1.45/1] w-full overflow-hidden bg-neutral-100 sm:aspect-[1.65/1] md:aspect-[1.85/1]">
+          <Image
+            src={project.coverImage.url}
+            alt={project.coverImage.alt || project.title}
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
           />
         </section>
       )}
 
-      {/* Project information */}
-      <section className="px-4 py-8 md:px-8 md:py-12">
-        <div className="grid grid-cols-1 gap-10 border-t border-[#1f1a13] pt-5 md:grid-cols-12">
-          <div className="md:col-span-7">
-            <h1 className="text-[clamp(2.5rem,5vw,5.5rem)] font-normal uppercase leading-[0.9] tracking-[-0.055em]">
-              {project.title}
-            </h1>
+      {/* Description and project information */}
+      <section className="px-5 py-20 md:px-8 md:py-28 lg:py-32">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-x-6">
+          {/* Empty columns create the large left margin from the reference */}
+          <div className="md:col-start-4 md:col-span-5">
+            {project.description && project.description.length > 0 ? (
+              <div className="font-mabrypro text-[12px] font-medium leading-[1.08] tracking-[-0.015em] md:text-[13px] lg:text-[14px]">
+                <PortableText
+                  value={project.description}
+                  components={{
+                    block: {
+                      normal: ({ children }) => (
+                        <p className="mb-3 last:mb-0">{children}</p>
+                      ),
+
+                      h2: ({ children }) => (
+                        <h2 className="mb-4 mt-8 text-[1.15em] font-semibold leading-none">
+                          {children}
+                        </h2>
+                      ),
+
+                      h3: ({ children }) => (
+                        <h3 className="mb-3 mt-6 text-[1em] font-semibold leading-none">
+                          {children}
+                        </h3>
+                      ),
+                    },
+
+                    list: {
+                      bullet: ({ children }) => (
+                        <div className="my-3 space-y-1">{children}</div>
+                      ),
+
+                      number: ({ children }) => (
+                        <div className="my-3 space-y-1">{children}</div>
+                      ),
+                    },
+
+                    listItem: {
+                      bullet: ({ children }) => (
+                        <div className="grid grid-cols-[12px_1fr] gap-1">
+                          <span>//</span>
+                          <span>{children}</span>
+                        </div>
+                      ),
+
+                      number: ({ children, value }) => (
+                        <div className="grid grid-cols-[18px_1fr] gap-1">
+                          <span>{value.level}.</span>
+                          <span>{children}</span>
+                        </div>
+                      ),
+                    },
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="font-mabrypro text-[12px] leading-[1.1] md:text-[13px]">
+                Project description coming soon.
+              </p>
+            )}
           </div>
 
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-6 text-[9px] font-normal uppercase tracking-[0.12em] md:col-span-5 md:text-[10px]">
-            {project.location && (
-              <div>
-                <dt className="mb-1 opacity-45">Location</dt>
-                <dd className="font-normal">{project.location}</dd>
-              </div>
-            )}
+          {/* Project metadata */}
+          {projectDetails.length > 0 && (
+            <aside className="md:col-start-10 md:col-span-3">
+              <dl className="grid grid-cols-2 gap-x-7 gap-y-5 font-mabrypro">
+                {projectDetails.map((detail) => (
+                  <div key={detail.label}>
+                    <dt className="mb-1 text-[7px] font-normal uppercase leading-none tracking-[0.03em] md:text-[8px]">
+                      {detail.label}
+                    </dt>
 
-            {project.year && (
-              <div>
-                <dt className="mb-1 opacity-45">Year</dt>
-                <dd className="font-normal">{project.year}</dd>
-              </div>
-            )}
-
-            {project.projectType && (
-              <div>
-                <dt className="mb-1 opacity-45">Project Type</dt>
-                <dd className="font-normal">{project.projectType}</dd>
-              </div>
-            )}
-
-            {project.firm && (
-              <div>
-                <dt className="mb-1 opacity-45">Firm</dt>
-                <dd className="font-normal">{project.firm}</dd>
-              </div>
-            )}
-
-            {project.role && (
-              <div>
-                <dt className="mb-1 opacity-45">Role</dt>
-                <dd className="font-normal">{project.role}</dd>
-              </div>
-            )}
-          </dl>
+                    <dd className="text-[8px] font-medium uppercase leading-[1.15] tracking-[0.01em] md:text-[9px]">
+                      {detail.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
+          )}
         </div>
       </section>
 
-      {/* Description */}
-      {project.description && project.description.length > 0 && (
-        <section className="px-4 py-16 md:px-8 md:py-28">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
-            <p className="text-[9px] font-normal uppercase tracking-[0.15em] md:col-span-3 md:text-[10px]">
-              Project
-            </p>
-
-            <div className="text-[clamp(1.5rem,2.25vw,2.5rem)] font-normal leading-[1.08] tracking-[-0.035em] md:col-span-7">
-              <PortableText
-                value={project.description}
-                components={{
-                  block: {
-                    normal: ({ children }) => (
-                      <p className="mb-8 font-normal last:mb-0">{children}</p>
-                    ),
-
-                    h1: ({ children }) => (
-                      <h2 className="mb-6 mt-16 text-[clamp(2rem,3vw,3.5rem)] font-normal uppercase leading-[0.95] tracking-[-0.045em]">
-                        {children}
-                      </h2>
-                    ),
-
-                    h2: ({ children }) => (
-                      <h2 className="mb-6 mt-16 text-[clamp(1.75rem,2.5vw,3rem)] font-normal uppercase leading-[0.95] tracking-[-0.04em]">
-                        {children}
-                      </h2>
-                    ),
-
-                    h3: ({ children }) => (
-                      <h3 className="mb-5 mt-12 text-xl font-normal uppercase tracking-[-0.025em]">
-                        {children}
-                      </h3>
-                    ),
-
-                    blockquote: ({ children }) => (
-                      <blockquote className="my-10 border-l border-[#1f1a13] pl-6 font-normal italic">
-                        {children}
-                      </blockquote>
-                    ),
-                  },
-
-                  list: {
-                    bullet: ({ children }) => (
-                      <ul className="mb-8 list-disc space-y-2 pl-6">
-                        {children}
-                      </ul>
-                    ),
-
-                    number: ({ children }) => (
-                      <ol className="mb-8 list-decimal space-y-2 pl-6">
-                        {children}
-                      </ol>
-                    ),
-                  },
-
-                  marks: {
-                    strong: ({ children }) => (
-                      <span className="font-normal underline decoration-1 underline-offset-4">
-                        {children}
-                      </span>
-                    ),
-
-                    em: ({ children }) => (
-                      <em className="font-normal italic">{children}</em>
-                    ),
-
-                    link: ({ children, value }) => (
-                      <a
-                        href={value?.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-normal underline decoration-1 underline-offset-4 transition-opacity hover:opacity-50"
-                      >
-                        {children}
-                      </a>
-                    ),
-                  },
-                }}
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Gallery */}
+      {/* Additional project gallery */}
       {project.gallery && project.gallery.length > 0 && (
-        <section className="space-y-4 px-4 pb-20 md:space-y-8 md:px-8 md:pb-32">
-          {project.gallery.map((image, index) => {
-            const isPortrait =
-              image.width !== undefined &&
-              image.height !== undefined &&
-              image.height > image.width;
+        <section>
+          {project.gallery
+            .filter((image) => image.url)
+            .map((image, index) => {
+              const width = image.width || 1800;
+              const height = image.height || 1200;
 
-            return (
-              <figure
-                key={`${image.url}-${index}`}
-                className={isPortrait ? "mx-auto max-w-3xl" : "w-full"}
-              >
-                <img
-                  src={image.url}
-                  alt={`${project.title} — image ${index + 1}`}
-                  className="h-auto w-full"
-                  loading="lazy"
-                />
-              </figure>
-            );
-          })}
+              return (
+                <figure
+                  key={image._key || `${image.url}-${index}`}
+                  className="w-full"
+                >
+                  <Image
+                    src={image.url}
+                    alt={
+                      image.alt || `${project.title} project image ${index + 1}`
+                    }
+                    width={width}
+                    height={height}
+                    sizes="100vw"
+                    className="h-auto w-full"
+                  />
+                </figure>
+              );
+            })}
         </section>
       )}
 
       {/* Bottom navigation */}
-      <footer className="px-4 pb-6 md:px-8 md:pb-8">
-        <div className="flex items-center justify-between border-t border-[#1f1a13] pt-5 text-[9px] font-normal uppercase tracking-[0.15em] md:text-[10px]">
-          <Link href="/work" className="transition-opacity hover:opacity-50">
+      <footer className="px-5 py-8 md:px-8 md:py-10">
+        <div className="flex items-center justify-between border-t border-black pt-4 font-mabrypro text-[8px] font-normal uppercase tracking-[0.04em] md:text-[9px]">
+          <Link href="/work" className="transition-opacity hover:opacity-45">
             ← All projects
           </Link>
 
-          <p className="font-normal">{project.year || "Dean Hjerpyn"}</p>
+          <span>{project.year || "Dean Hjerpyn"}</span>
         </div>
       </footer>
     </main>
