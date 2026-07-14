@@ -130,57 +130,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
     <main className="min-h-screen bg-white text-black">
       {/* Project heading and navigation */}
       {/* Sticky project title */}
-      <div className="pointer-events-none sticky top-0 z-40 h-[120px] md:h-[138px]">
-        <div className="px-4 pt-8 md:px-5 md:pt-10">
-          <h1 className="pointer-events-auto w-fit max-w-[calc(100vw-140px)] bg-white pr-3 font-mabrypro text-[clamp(2rem,4vw,4.25rem)] font-semibold lowercase leading-[0.9] tracking-[-0.045em]">
-            {project.title}
-          </h1>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <header className="relative -mt-[120px] h-[120px] md:-mt-[138px] md:h-[138px]">
-        <nav className="absolute right-4 top-8 z-50 min-w-[96px] bg-white font-mabrypro text-[9px] font-normal uppercase leading-[1.55] tracking-[0.01em] md:right-5 md:top-10 md:min-w-[112px] md:text-[10px]">
-          <Link
-            href="/"
-            className="block lowercase transition-opacity hover:opacity-45"
-          >
-            dean hjerpyn
-          </Link>
-
-          <Link
-            href="/work"
-            className="block transition-opacity hover:opacity-45"
-          >
-            Work
-          </Link>
-
-          <Link
-            href="/field-journal"
-            className="block transition-opacity hover:opacity-45"
-          >
-            Field Journal
-          </Link>
-
-          <Link
-            href="/cv"
-            className="block transition-opacity hover:opacity-45"
-          >
-            CV
-          </Link>
-
-          <a
-            href={`mailto:${email}`}
-            className="block transition-opacity hover:opacity-45"
-          >
-            Contact
-          </a>
-        </nav>
-      </header>
-
-      {/* Full-width project cover */}
       {project.coverImage?.url && (
-        <section className="relative aspect-[1.45/1] w-full overflow-hidden bg-neutral-100 sm:aspect-[1.65/1] md:aspect-[1.85/1]">
+        <section className="relative min-h-[72vh] w-full overflow-hidden bg-neutral-100 md:min-h-screen">
           <Image
             src={project.coverImage.url}
             alt={project.coverImage.alt || project.title}
@@ -189,6 +140,47 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             sizes="100vw"
             className="object-cover"
           />
+
+          <h1 className="fixed left-4 top-7 z-40 max-w-[calc(100vw-145px)] font-mabrypro text-[clamp(2rem,4vw,4.25rem)] font-semibold lowercase leading-[0.9] tracking-[-0.045em] mix-blend-difference text-white md:left-5 md:top-10">
+            {project.title}
+          </h1>
+
+          <nav className="fixed right-4 top-7 z-50 min-w-[96px] font-mabrypro text-[9px] font-normal uppercase leading-[1.55] tracking-[0.01em] mix-blend-difference text-white md:right-5 md:top-10 md:min-w-[112px] md:text-[10px]">
+            <Link
+              href="/"
+              className="block lowercase transition-opacity hover:opacity-45"
+            >
+              dean hjerpyn
+            </Link>
+
+            <Link
+              href="/work"
+              className="block transition-opacity hover:opacity-45"
+            >
+              Work
+            </Link>
+
+            <Link
+              href="/field-journal"
+              className="block transition-opacity hover:opacity-45"
+            >
+              Field Journal
+            </Link>
+
+            <Link
+              href="/cv"
+              className="block transition-opacity hover:opacity-45"
+            >
+              CV
+            </Link>
+
+            <a
+              href={`mailto:${email}`}
+              className="block transition-opacity hover:opacity-45"
+            >
+              Contact
+            </a>
+          </nav>
         </section>
       )}
 
