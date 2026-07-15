@@ -46,6 +46,24 @@ export const projectType = defineType({
     },
 
     {
+      name: "professor",
+      title: "Professor",
+      type: "string",
+    },
+
+    {
+      name: "collaborators",
+      title: "Collaborators",
+      description: "Type a name, press Enter or comma to add it as a tag.",
+      type: "array",
+      of: [{ type: "string" }],
+
+      options: {
+        layout: "tags",
+      },
+    },
+
+    {
       name: "slug",
       title: "Slug",
       type: "slug",

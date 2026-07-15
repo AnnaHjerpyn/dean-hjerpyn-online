@@ -9,12 +9,40 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type SanityImage = {
-  _key?: string;
   url: string;
   alt?: string;
   width?: number;
   height?: number;
+  lqip?: string;
 };
+
+type GalleryImage = {
+  _type: "image";
+  _key: string;
+  url: string;
+  alt?: string;
+  caption?: string;
+  width?: number;
+  height?: number;
+  lqip?: string;
+};
+
+type GalleryVideo = {
+  _type: "video";
+  _key: string;
+  url: string;
+  caption?: string;
+};
+
+type GalleryPdf = {
+  _type: "pdf";
+  _key: string;
+  url: string;
+  title?: string;
+  filename?: string;
+};
+
+type GalleryItem = GalleryImage | GalleryVideo | GalleryPdf;
 
 type Project = {
   title: string;
@@ -23,10 +51,12 @@ type Project = {
   firm?: string;
   role?: string;
   projectType?: string;
+  professor?: string;
+  collaborators?: string[];
   slug?: string;
   description?: PortableTextBlock[];
   coverImage?: SanityImage;
-  gallery?: SanityImage[];
+  gallery?: GalleryItem[];
 };
 
 type SiteSettings = {
@@ -52,6 +82,8 @@ async function getProject(slug: string): Promise<Project | null> {
         firm,
         role,
         projectType,
+        professor,
+        collaborators,
         description,
 
         "slug": slug.current,
@@ -60,15 +92,32 @@ async function getProject(slug: string): Promise<Project | null> {
           alt,
           "url": asset->url,
           "width": asset->metadata.dimensions.width,
-          "height": asset->metadata.dimensions.height
+          "height": asset->metadata.dimensions.height,
+          "lqip": asset->metadata.lqip
         },
 
         "gallery": gallery[] {
           _key,
-          alt,
-          "url": asset->url,
-          "width": asset->metadata.dimensions.width,
-          "height": asset->metadata.dimensions.height
+          _type,
+          ...select(
+            _type == "image" => {
+              alt,
+              caption,
+              "url": asset->url,
+              "width": asset->metadata.dimensions.width,
+              "height": asset->metadata.dimensions.height,
+              "lqip": asset->metadata.lqip
+            },
+            _type == "video" => {
+              caption,
+              "url": file.asset->url
+            },
+            _type == "pdf" => {
+              "title": title,
+              "url": file.asset->url,
+              "filename": file.asset->originalFilename
+            }
+          )
         }
       }
     `,
@@ -124,7 +173,20 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       label: "Type",
       value: project.projectType,
     },
+    {
+      label: "Professor",
+      value: project.professor,
+    },
+    {
+      label: "Collaborators",
+      value:
+        project.collaborators && project.collaborators.length > 0
+          ? project.collaborators.join(", ")
+          : undefined,
+    },
   ].filter((detail) => detail.value);
+
+  const galleryItems = (project.gallery || []).filter((item) => item.url);
 
   return (
     <main className="min-h-screen bg-white text-black">
@@ -138,6 +200,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             fill
             priority
             sizes="100vw"
+            placeholder={project.coverImage.lqip ? "blur" : undefined}
+            blurDataURL={project.coverImage.lqip}
             className="object-cover"
           />
 
@@ -148,16 +212,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <nav className="fixed right-4 top-7 z-50 min-w-[96px] font-mabrypro text-[9px] font-normal uppercase leading-[1.55] tracking-[0.01em] mix-blend-difference text-white md:right-5 md:top-10 md:min-w-[112px] md:text-[10px]">
             <Link
               href="/"
-              aria-label="Dean Hjerpyn homepage"
-              className="absolute left-4 top-5 block text-[#1f1a13] md:left-8 md:top-8"
+              className="block lowercase transition-opacity hover:opacity-45"
             >
-              <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
-                Dean
-              </span>
-
-              <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
-                Hjerpyn
-              </span>
+              dean hjerpyn
             </Link>
 
             <Link
@@ -276,32 +333,87 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       </section>
 
       {/* Additional project gallery */}
-      {project.gallery && project.gallery.length > 0 && (
-        <section>
-          {project.gallery
-            .filter((image) => image.url)
-            .map((image, index) => {
-              const width = image.width || 1800;
-              const height = image.height || 1200;
+      {galleryItems.length > 0 && (
+        <section className="px-4 py-10 md:px-8 md:py-16">
+          <div className="columns-2 gap-3 sm:columns-3 md:columns-4 md:gap-4">
+            {galleryItems.map((item, index) => {
+              if (item._type === "image") {
+                const width = item.width || 1800;
+                const height = item.height || 1200;
 
+                return (
+                  <figure
+                    key={item._key}
+                    className="mb-3 break-inside-avoid md:mb-4"
+                  >
+                    <Image
+                      src={item.url}
+                      alt={
+                        item.alt ||
+                        `${project.title} project image ${index + 1}`
+                      }
+                      width={width}
+                      height={height}
+                      sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, 25vw"
+                      placeholder={item.lqip ? "blur" : undefined}
+                      blurDataURL={item.lqip}
+                      className="h-auto w-full"
+                    />
+
+                    {item.caption && (
+                      <figcaption className="mt-1 font-mabrypro text-[7px] uppercase tracking-[0.03em] text-neutral-500 md:text-[8px]">
+                        {item.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                );
+              }
+
+              if (item._type === "video") {
+                return (
+                  <figure
+                    key={item._key}
+                    className="mb-3 break-inside-avoid md:mb-4"
+                  >
+                    {/*
+                      eslint-disable-next-line jsx-a11y/media-has-caption --
+                      source videos aren't captioned in Sanity yet
+                    */}
+                    <video
+                      src={item.url}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="h-auto w-full"
+                    />
+
+                    {item.caption && (
+                      <figcaption className="mt-1 font-mabrypro text-[7px] uppercase tracking-[0.03em] text-neutral-500 md:text-[8px]">
+                        {item.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                );
+              }
+
+              // PDF
               return (
-                <figure
-                  key={image._key || `${image.url}-${index}`}
-                  className="w-full"
+                <div
+                  key={item._key}
+                  className="mb-3 break-inside-avoid border border-black px-3 py-4 md:mb-4"
                 >
-                  <Image
-                    src={image.url}
-                    alt={
-                      image.alt || `${project.title} project image ${index + 1}`
-                    }
-                    width={width}
-                    height={height}
-                    sizes="100vw"
-                    className="h-auto w-full"
-                  />
-                </figure>
+                  <a
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 font-mabrypro text-[8px] font-medium uppercase tracking-[0.03em] transition-opacity hover:opacity-45 md:text-[9px]"
+                  >
+                    View PDF — {item.title || item.filename || "Document"}
+                  </a>
+                </div>
               );
             })}
+          </div>
         </section>
       )}
 
