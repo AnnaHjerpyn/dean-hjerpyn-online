@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  useEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -56,6 +57,11 @@ type CanvasStyle = CSSProperties & {
   "--mobile-height": string;
 };
 
+type CanvasMetrics = {
+  width: number;
+  availableHeight: number;
+};
+
 const BLUE = "#2f6cff";
 
 /*
@@ -63,8 +69,8 @@ const BLUE = "#2f6cff";
 
   y is measured in pixels.
 
-  Change these values to adjust the initial layout of the
-  project images.
+  Increase width to make an image larger.
+  Decrease y to move an image higher.
 */
 const STARTING_POSITIONS = [
   {
@@ -79,17 +85,17 @@ const STARTING_POSITIONS = [
   },
   {
     x: 27,
-    y: 140,
+    y: 20,
     width: 39,
   },
   {
     x: 0,
-    y: 140,
+    y: 40,
     width: 36,
   },
   {
     x: 39,
-    y: 40,
+    y: 10,
     width: 33,
   },
   {
@@ -99,7 +105,7 @@ const STARTING_POSITIONS = [
   },
   {
     x: 50,
-    y: 165,
+    y: 65,
     width: 47,
   },
 ];
@@ -130,7 +136,7 @@ function createInitialLayouts(projects: WorkProject[]) {
 
     layouts[project._id] = {
       x: position.x,
-      y: position.y + group * 1050,
+      y: position.y + group * 900,
       width: position.width,
       visible: true,
       locked: true,
@@ -269,20 +275,140 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
 
-  const imageProjects = projects.filter((project) =>
-    Boolean(project.coverImageUrl)
+  const [canvasMetrics, setCanvasMetrics] = useState<CanvasMetrics>({
+    width: 0,
+    availableHeight: 0,
+  });
+
+  /*
+    Measure the amount of viewport space remaining beneath the canvas.
+
+    The canvas will fill that remaining space without creating unnecessary
+    page scrolling. It will only become taller when an image extends past it.
+  */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+
+    if (!canvas) {
+      return;
+    }
+
+    const updateCanvasMetrics = () => {
+      const bounds = canvas.getBoundingClientRect();
+
+      const canvasTopOnPage = bounds.top + window.scrollY;
+
+      const nextWidth = bounds.width;
+
+      const nextAvailableHeight = Math.max(
+        0,
+        window.innerHeight - canvasTopOnPage
+      );
+
+      setCanvasMetrics((currentMetrics) => {
+        const widthChanged = Math.abs(currentMetrics.width - nextWidth) > 0.5;
+
+        const heightChanged =
+          Math.abs(currentMetrics.availableHeight - nextAvailableHeight) > 0.5;
+
+        if (!widthChanged && !heightChanged) {
+          return currentMetrics;
+        }
+
+        return {
+          width: nextWidth,
+          availableHeight: nextAvailableHeight,
+        };
+      });
+    };
+
+    updateCanvasMetrics();
+
+    const resizeObserver = new ResizeObserver(updateCanvasMetrics);
+
+    resizeObserver.observe(canvas);
+
+    window.addEventListener("resize", updateCanvasMetrics);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateCanvasMetrics);
+    };
+  }, []);
+
+  /*
+    Find the lowest visible desktop image.
+
+    The canvas height is based on that image instead of always being
+    forced to 1,200 pixels.
+  */
+  const desktopContentBottom = projects.reduce((lowestPoint, project) => {
+    const layout = layouts[project._id];
+
+    if (
+      !layout ||
+      !layout.visible ||
+      !project.coverImageUrl ||
+      canvasMetrics.width <= 0
+    ) {
+      return lowestPoint;
+    }
+
+    const cardWidth = canvasMetrics.width * (layout.width / 100);
+
+    const aspectRatio =
+      project.imageWidth && project.imageHeight
+        ? project.imageWidth / project.imageHeight
+        : 4 / 3;
+
+    const cardHeight = cardWidth / aspectRatio;
+
+    const cardBottom = layout.y + cardHeight;
+
+    return Math.max(lowestPoint, cardBottom);
+  }, 0);
+
+  /*
+    Find the lowest visible mobile image using the same mobile positions
+    used by the cards below.
+  */
+  const mobileContentBottom = projects.reduce((lowestPoint, project, index) => {
+    const layout = layouts[project._id];
+
+    if (
+      !layout ||
+      !layout.visible ||
+      !project.coverImageUrl ||
+      canvasMetrics.width <= 0
+    ) {
+      return lowestPoint;
+    }
+
+    const mobileColumn = index % 2;
+    const mobileRow = Math.floor(index / 2);
+
+    const mobileY = mobileRow * 250 + (mobileColumn === 0 ? 0 : 0);
+
+    const cardWidth = canvasMetrics.width * 0.49;
+
+    const aspectRatio =
+      project.imageWidth && project.imageHeight
+        ? project.imageWidth / project.imageHeight
+        : 4 / 3;
+
+    const cardHeight = cardWidth / aspectRatio;
+
+    const cardBottom = mobileY + cardHeight;
+
+    return Math.max(lowestPoint, cardBottom);
+  }, 0);
+
+  const desktopCanvasHeight = Math.ceil(
+    Math.max(canvasMetrics.availableHeight, desktopContentBottom + 24)
   );
 
-  const layoutGroups = Math.max(
-    1,
-    Math.ceil(projects.length / STARTING_POSITIONS.length)
-  );
-
-  const desktopCanvasHeight = 1200 + (layoutGroups - 1) * 1050;
-
-  const mobileCanvasHeight = Math.max(
-    560,
-    Math.ceil(imageProjects.length / 2) * 240 + 180
+  const mobileCanvasHeight = Math.ceil(
+    Math.max(canvasMetrics.availableHeight, mobileContentBottom + 24)
   );
 
   function toggleVisibility(projectId: string) {
@@ -344,7 +470,8 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     setActiveProjectId(projectId);
 
     /*
-      Images can be selected on mobile, but dragging only works on desktop.
+      Images can be selected on mobile, but dragging only works
+      on desktop.
     */
     if (window.innerWidth < 768 || layout.locked) {
       return;
@@ -364,6 +491,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     };
 
     event.currentTarget.setPointerCapture(event.pointerId);
+
     event.preventDefault();
   }
 
@@ -390,13 +518,12 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     }
 
     const movementX = event.clientX - drag.startClientX;
+
     const movementY = event.clientY - drag.startClientY;
 
     const startingLeftPixels = (drag.startX / 100) * canvasBounds.width;
 
     const maximumLeft = Math.max(0, canvasBounds.width - drag.cardWidth);
-
-    const maximumTop = Math.max(0, canvasBounds.height - drag.cardHeight);
 
     const nextLeftPixels = clamp(
       startingLeftPixels + movementX,
@@ -404,7 +531,14 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       maximumLeft
     );
 
-    const nextTop = clamp(drag.startY + movementY, 0, maximumTop);
+    /*
+      There is no fixed maximum Y position.
+
+      Dragging an image lower automatically increases the canvas height,
+      and the page becomes scrollable only when that image extends past
+      the viewport.
+    */
+    const nextTop = Math.max(0, drag.startY + movementY);
 
     const nextX = (nextLeftPixels / canvasBounds.width) * 100;
 
@@ -469,9 +603,9 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
           const mobileColumn = index % 2;
           const mobileRow = Math.floor(index / 2);
 
-          const mobileX = mobileColumn === 0 ? 0 : 52;
+          const mobileX = mobileColumn === 0 ? 0 : 51;
 
-          const mobileY = mobileRow * 240 + (mobileColumn === 0 ? 70 : 0);
+          const mobileY = mobileRow * 250 + (mobileColumn === 0 ? 0 : 0);
 
           const style: WorkCardStyle = {
             "--desktop-x": `${layout.x}%`,
@@ -479,7 +613,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             "--desktop-width": `${layout.width}%`,
             "--mobile-x": `${mobileX}%`,
             "--mobile-y": `${mobileY}px`,
-            "--mobile-width": "46%",
+            "--mobile-width": "49%",
             aspectRatio: imageAspectRatio,
             zIndex: isActive ? 40 : index + 1,
             touchAction: layout.locked ? "auto" : "none",
@@ -507,7 +641,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
                   priority={index < 4}
                   unoptimized
                   draggable={false}
-                  sizes="(max-width: 767px) 46vw, 34vw"
+                  sizes="(max-width: 767px) 49vw, 39vw"
                   className="pointer-events-none object-cover grayscale"
                 />
 
@@ -517,6 +651,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
           );
         })}
       </div>
+
       <aside className="order-1 self-start md:order-2 md:sticky md:top-24">
         <h1 className="mb-3 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-semibold leading-none tracking-[-0.035em]">
           Selected Works
@@ -531,6 +666,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             }
 
             const hasImage = Boolean(project.coverImageUrl);
+
             const isActive = activeProjectId === project._id;
 
             return (
@@ -609,6 +745,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
           })}
         </div>
       </aside>
+
       <style jsx>{`
         .work-canvas {
           height: var(--mobile-height);
