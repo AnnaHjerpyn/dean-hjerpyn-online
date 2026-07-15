@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image, { type ImageLoaderProps } from "next/image";
 import Link from "next/link";
 import {
   useEffect,
@@ -115,15 +115,20 @@ function clamp(value: number, minimum: number, maximum: number) {
 }
 
 /*
-  This requests a smaller transformed image directly from Sanity.
+  This sends each requested responsive width directly to Sanity.
 
-  The Next.js image optimizer is disabled below so large Sanity images
-  do not pass through the local /_next/image route.
+  The image no longer has to pass through your website's
+  /_next/image optimization route.
 */
-function getSanityImageUrl(url: string, width = 1800) {
-  const separator = url.includes("?") ? "&" : "?";
+function sanityImageLoader({ src, width, quality }: ImageLoaderProps): string {
+  const url = new URL(src);
 
-  return `${url}${separator}w=${width}&fit=max&auto=format`;
+  url.searchParams.set("w", width.toString());
+  url.searchParams.set("q", String(quality ?? 80));
+  url.searchParams.set("fit", "max");
+  url.searchParams.set("auto", "format");
+
+  return url.toString();
 }
 
 function createInitialLayouts(projects: WorkProject[]) {
@@ -157,7 +162,6 @@ function EyeIcon() {
       strokeWidth="2"
     >
       <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-
       <circle cx="12" cy="12" r="3" />
     </svg>
   );
@@ -195,7 +199,6 @@ function LockedIcon() {
       strokeWidth="2"
     >
       <rect x="5" y="10" width="14" height="11" rx="1" />
-
       <path d="M8 10V7a4 4 0 0 1 8 0v3" />
     </svg>
   );
@@ -212,7 +215,6 @@ function UnlockedIcon() {
       strokeWidth="2"
     >
       <rect x="5" y="10" width="14" height="11" rx="1" />
-
       <path d="M8 10V7a4 4 0 0 1 7.5-2" />
     </svg>
   );
@@ -283,8 +285,8 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
   /*
     Measure the amount of viewport space remaining beneath the canvas.
 
-    The canvas will fill that remaining space without creating unnecessary
-    page scrolling. It will only become taller when an image extends past it.
+    The canvas fills that remaining space without creating unnecessary
+    page scrolling. It becomes taller when an image extends past it.
   */
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -297,7 +299,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       const bounds = canvas.getBoundingClientRect();
 
       const canvasTopOnPage = bounds.top + window.scrollY;
-
       const nextWidth = bounds.width;
 
       const nextAvailableHeight = Math.max(
@@ -327,7 +328,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     const resizeObserver = new ResizeObserver(updateCanvasMetrics);
 
     resizeObserver.observe(canvas);
-
     window.addEventListener("resize", updateCanvasMetrics);
 
     return () => {
@@ -340,7 +340,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     Find the lowest visible desktop image.
 
     The canvas height is based on that image instead of always being
-    forced to 1,200 pixels.
+    forced to a fixed height.
   */
   const desktopContentBottom = projects.reduce((lowestPoint, project) => {
     const layout = layouts[project._id];
@@ -362,15 +362,14 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
         : 4 / 3;
 
     const cardHeight = cardWidth / aspectRatio;
-
     const cardBottom = layout.y + cardHeight;
 
     return Math.max(lowestPoint, cardBottom);
   }, 0);
 
   /*
-    Find the lowest visible mobile image using the same mobile positions
-    used by the cards below.
+    Find the lowest visible mobile image using the same mobile
+    positions used by the cards below.
   */
   const mobileContentBottom = projects.reduce((lowestPoint, project, index) => {
     const layout = layouts[project._id];
@@ -397,7 +396,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
         : 4 / 3;
 
     const cardHeight = cardWidth / aspectRatio;
-
     const cardBottom = mobileY + cardHeight;
 
     return Math.max(lowestPoint, cardBottom);
@@ -491,7 +489,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     };
 
     event.currentTarget.setPointerCapture(event.pointerId);
-
     event.preventDefault();
   }
 
@@ -518,7 +515,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     }
 
     const movementX = event.clientX - drag.startClientX;
-
     const movementY = event.clientY - drag.startClientY;
 
     const startingLeftPixels = (drag.startX / 100) * canvasBounds.width;
@@ -534,9 +530,9 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     /*
       There is no fixed maximum Y position.
 
-      Dragging an image lower automatically increases the canvas height,
-      and the page becomes scrollable only when that image extends past
-      the viewport.
+      Dragging an image lower automatically increases the canvas
+      height, and the page becomes scrollable when the image extends
+      past the viewport.
     */
     const nextTop = Math.max(0, drag.startY + movementY);
 
@@ -635,13 +631,14 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             >
               <div className="relative h-full w-full overflow-visible bg-[#eeeeee]">
                 <Image
+                  loader={sanityImageLoader}
                   src={project.coverImageUrl}
-                  alt={project.title}
+                  alt={project.coverImageAlt || project.title}
                   fill
-                  loading={index < STARTING_POSITIONS.length ? "eager" : "lazy"}
-                  fetchPriority={index === 0 ? "high" : "auto"}
-                  sizes="(max-width: 768px) 49vw, 50vw"
-                  className="object-cover"
+                  sizes="(max-width: 767px) 49vw, 32vw"
+                  loading={index < 2 ? "eager" : "lazy"}
+                  draggable={false}
+                  className="object-contain"
                 />
 
                 {isActive && <SelectionFrame />}
