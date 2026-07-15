@@ -74,39 +74,46 @@ const BLUE = "#2f6cff";
 */
 const STARTING_POSITIONS = [
   {
-    x: 4,
-    y: 100,
+    x: 7,
+    y: 95,
     width: 31,
+    zIndex: 1,
   },
   {
-    x: 2,
-    y: 790,
+    x: 5,
+    y: 610,
     width: 38,
+    zIndex: 2,
   },
   {
     x: 36,
-    y: 75,
+    y: 165,
     width: 32,
+    zIndex: 3,
   },
   {
-    x: 6,
-    y: 430,
+    x: 0,
+    y: 365,
     width: 33,
+    zIndex: 4,
+  },
+  {
+    x: 28,
+    y: 360,
+    width: 38,
+    zIndex: 5,
+  },
+  {
+    x: 41,
+    y: 775,
+    width: 31,
+    zIndex: 8,
   },
   {
     x: 43,
-    y: 375,
+    y: 545,
     width: 38,
-  },
-  {
-    x: 42,
-    y: 700,
-    width: 31,
-  },
-  {
-    x: 42,
-    y: 980,
-    width: 38,
+    zIndex: 6,
   },
 ];
 
