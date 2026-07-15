@@ -68,39 +68,39 @@ const BLUE = "#2f6cff";
 */
 const STARTING_POSITIONS = [
   {
-    x: 3,
-    y: 90,
-    width: 28,
-  },
-  {
-    x: 33,
+    x: 1,
     y: 0,
-    width: 26,
-  },
-  {
-    x: 29,
-    y: 270,
     width: 34,
   },
   {
-    x: 0,
-    y: 515,
+    x: 35,
+    y: 0,
     width: 31,
   },
   {
-    x: 40,
-    y: 590,
-    width: 28,
+    x: 27,
+    y: 140,
+    width: 39,
   },
   {
-    x: 2,
-    y: 810,
-    width: 27,
+    x: 0,
+    y: 140,
+    width: 36,
   },
   {
-    x: 53,
-    y: 760,
-    width: 42,
+    x: 39,
+    y: 40,
+    width: 33,
+  },
+  {
+    x: 1,
+    y: 110,
+    width: 32,
+  },
+  {
+    x: 50,
+    y: 165,
+    width: 47,
   },
 ];
 
@@ -436,7 +436,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
   }
 
   return (
-    <section className="mt-3 grid w-full gap-12 md:mt-4 md:grid-cols-[minmax(0,1.65fr)_minmax(340px,0.95fr)] md:gap-10">
+    <section className="-mt-6 grid w-full gap-12 md:-mt-12 md:grid-cols-[minmax(0,1.65fr)_minmax(340px,0.95fr)] md:gap-10">
       <div
         ref={canvasRef}
         className="work-canvas relative order-2 w-full md:order-1"
