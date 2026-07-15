@@ -250,11 +250,15 @@ img {
   }
 }
 
-@media (pointer: fine) {
+/* =========================
+   CUSTOM CURSOR
+========================= */
+
+@media (hover: hover) and (pointer: fine) {
 
   html,
   body,
   body * {
-    cursor: url("/dean-cursor.png") 32 32, auto !important;
+    cursor: url("/dean-cursor-32.png?v=2") 16 16, crosshair !important;
   }
 }
