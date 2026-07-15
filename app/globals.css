@@ -249,3 +249,12 @@ img {
     margin-left: 1rem;
   }
 }
+
+@media (pointer: fine) {
+
+  html,
+  body,
+  body * {
+    cursor: url("/dean-cursor.png") 32 32, auto !important;
+  }
+}
