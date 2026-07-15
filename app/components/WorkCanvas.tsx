@@ -105,7 +105,7 @@ const STARTING_POSITIONS = [
   },
   {
     x: 41,
-    y: 775,
+    y: 300,
     width: 31,
     zIndex: 8,
   },
