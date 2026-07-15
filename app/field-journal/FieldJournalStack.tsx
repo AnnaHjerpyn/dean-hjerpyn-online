@@ -167,16 +167,14 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                   {resolvedMediaType === "video" && entry.videoUrl && (
                     <div className="flex h-[65vh] w-full max-w-[760px] items-center justify-center">
                       <video
-                        key={entry.videoUrl}
-                        controls
+                        src={entry.videoUrl}
+                        autoPlay
+                        muted
+                        loop
                         playsInline
-                        preload="metadata"
-                        className="max-h-[65vh] w-full object-contain"
+                        preload="auto"
+                        className="pointer-events-none block h-auto w-full object-cover"
                       >
-                        <source
-                          src={entry.videoUrl}
-                          type={entry.videoMimeType || "video/mp4"}
-                        />
                         Your browser does not support video playback.
                       </video>
                     </div>
