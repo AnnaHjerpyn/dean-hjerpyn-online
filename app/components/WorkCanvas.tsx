@@ -62,11 +62,31 @@ type CanvasMetrics = {
   availableHeight: number;
 };
 
+// A rectangle in canvas-relative pixels.
+type Rect = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
+
+// The "Selected Works" text block's live bounding box, in canvas-relative
+// pixels. Cards are pushed clear of this box on desktop. Null on mobile,
+// where the list sits above the canvas in normal flow instead of overlaying it.
+type ExclusionZone = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
 const BLUE = "#2f6cff";
 
-/*
-  x and width are percentages of the left image canvas.
+// Minimum gap kept between a card's edge and the text block.
+const EXCLUSION_PADDING = 32;
 
+/*
+  x and width are percentages of the image canvas.
   y is measured in pixels.
 
   Increase width to make an image larger.
@@ -74,44 +94,44 @@ const BLUE = "#2f6cff";
 */
 const STARTING_POSITIONS = [
   {
-    x: 7,
-    y: 95,
+    x: 3,
+    y: 105,
     width: 31,
     zIndex: 1,
   },
   {
-    x: 5,
-    y: 610,
+    x: 2,
+    y: 640,
     width: 38,
     zIndex: 2,
   },
   {
-    x: 36,
-    y: 165,
+    x: 30,
+    y: 145,
     width: 32,
     zIndex: 3,
   },
   {
-    x: 0,
-    y: 365,
+    x: 4,
+    y: 405,
     width: 33,
     zIndex: 4,
   },
   {
-    x: 28,
-    y: 360,
+    x: 24,
+    y: 395,
     width: 38,
     zIndex: 5,
   },
   {
-    x: 41,
-    y: 300,
+    x: 37,
+    y: 315,
     width: 31,
     zIndex: 8,
   },
   {
-    x: 43,
-    y: 545,
+    x: 39,
+    y: 585,
     width: 38,
     zIndex: 6,
   },
@@ -121,12 +141,99 @@ function clamp(value: number, minimum: number, maximum: number) {
   return Math.min(Math.max(value, minimum), maximum);
 }
 
-/*
-  This sends each requested responsive width directly to Sanity.
+function getAspectRatio(project: WorkProject) {
+  return project.imageWidth && project.imageHeight
+    ? project.imageWidth / project.imageHeight
+    : 4 / 3;
+}
 
-  The image no longer has to pass through your website's
-  /_next/image optimization route.
+/*
+  If `rect` overlaps the padded exclusion zone, nudges it out along whichever
+  direction (left / right / up / down) requires the smallest move. Used both
+  to size the canvas correctly and to render cards, so dragging a card toward
+  the text block just slides it along the nearest edge instead of letting it
+  underneath.
 */
+function resolveExclusion(
+  rect: Rect,
+  zone: ExclusionZone | null,
+  padding: number,
+  canvasWidth: number
+): Rect {
+  if (!zone) {
+    return rect;
+  }
+
+  const paddedZone = {
+    left: zone.left - padding,
+    top: zone.top - padding,
+    right: zone.right + padding,
+    bottom: zone.bottom + padding,
+  };
+
+  const rectRight = rect.left + rect.width;
+  const rectBottom = rect.top + rect.height;
+
+  const overlaps =
+    rect.left < paddedZone.right &&
+    rectRight > paddedZone.left &&
+    rect.top < paddedZone.bottom &&
+    rectBottom > paddedZone.top;
+
+  if (!overlaps) {
+    return rect;
+  }
+
+  const pushLeft = rectRight - paddedZone.left;
+  const pushRight = paddedZone.right - rect.left;
+  const pushUp = rectBottom - paddedZone.top;
+  const pushDown = paddedZone.bottom - rect.top;
+
+  const smallest = Math.min(pushLeft, pushRight, pushUp, pushDown);
+
+  let nextLeft = rect.left;
+  let nextTop = rect.top;
+
+  if (smallest === pushLeft) {
+    nextLeft = rect.left - pushLeft;
+  } else if (smallest === pushRight) {
+    nextLeft = rect.left + pushRight;
+  } else if (smallest === pushUp) {
+    nextTop = rect.top - pushUp;
+  } else {
+    nextTop = rect.top + pushDown;
+  }
+
+  const maxLeft = Math.max(0, canvasWidth - rect.width);
+
+  return {
+    ...rect,
+    left: clamp(nextLeft, 0, maxLeft),
+    top: Math.max(0, nextTop),
+  };
+}
+
+// Converts a stored layout (percent x/width, px y) into a resolved,
+// exclusion-aware pixel rect for desktop rendering.
+function getResolvedDesktopRect(
+  project: WorkProject,
+  layout: ProjectLayout,
+  canvasWidth: number,
+  exclusionZone: ExclusionZone | null
+): Rect {
+  const width = canvasWidth * (layout.width / 100);
+  const height = width / getAspectRatio(project);
+  const left = (layout.x / 100) * canvasWidth;
+  const top = layout.y;
+
+  return resolveExclusion(
+    { left, top, width, height },
+    exclusionZone,
+    EXCLUSION_PADDING,
+    canvasWidth
+  );
+}
+
 function sanityImageLoader({ src, width, quality }: ImageLoaderProps): string {
   const url = new URL(src);
 
@@ -143,7 +250,6 @@ function createInitialLayouts(projects: WorkProject[]) {
 
   projects.forEach((project, index) => {
     const position = STARTING_POSITIONS[index % STARTING_POSITIONS.length];
-
     const group = Math.floor(index / STARTING_POSITIONS.length);
 
     layouts[project._id] = {
@@ -185,11 +291,8 @@ function EyeOffIcon() {
       strokeWidth="2"
     >
       <path d="m3 3 18 18" />
-
       <path d="M10.6 6.2A11 11 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-2.1 2.8" />
-
       <path d="M6.6 6.6C3.6 8.4 2 12 2 12s3.5 6 10 6a10.8 10.8 0 0 0 4.1-.8" />
-
       <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
     </svg>
   );
@@ -252,7 +355,6 @@ function SelectionFrame() {
           strokeWidth="1"
           vectorEffect="non-scaling-stroke"
         />
-
         <line
           x1="100"
           y1="0"
@@ -276,6 +378,7 @@ function SelectionFrame() {
 
 export default function WorkCanvas({ projects }: WorkCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const asideRef = useRef<HTMLElement>(null);
   const dragState = useRef<DragState | null>(null);
 
   const [layouts, setLayouts] = useState<Record<string, ProjectLayout>>(() =>
@@ -289,12 +392,10 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     availableHeight: 0,
   });
 
-  /*
-    Measure the amount of viewport space remaining beneath the canvas.
+  const [exclusionZone, setExclusionZone] = useState<ExclusionZone | null>(
+    null
+  );
 
-    The canvas fills that remaining space without creating unnecessary
-    page scrolling. It becomes taller when an image extends past it.
-  */
   useEffect(() => {
     const canvas = canvasRef.current;
 
@@ -343,12 +444,69 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     };
   }, []);
 
-  /*
-    Find the lowest visible desktop image.
+  // Tracks the "Selected Works" text block's live bounding box relative to
+  // the canvas, so cards can be kept clear of it. Desktop only — on mobile
+  // the list sits above the canvas in normal flow, so there's no overlap.
+  useEffect(() => {
+    const aside = asideRef.current;
+    const canvas = canvasRef.current;
 
-    The canvas height is based on that image instead of always being
-    forced to a fixed height.
-  */
+    if (!aside || !canvas) {
+      return;
+    }
+
+    const updateExclusionZone = () => {
+      const isDesktop = window.innerWidth >= 768;
+
+      if (!isDesktop) {
+        setExclusionZone((current) => (current === null ? current : null));
+        return;
+      }
+
+      const asideBounds = aside.getBoundingClientRect();
+      const canvasBounds = canvas.getBoundingClientRect();
+
+      const left = asideBounds.left - canvasBounds.left;
+      const top = asideBounds.top - canvasBounds.top;
+
+      const next: ExclusionZone = {
+        left,
+        top,
+        right: left + asideBounds.width,
+        bottom: top + asideBounds.height,
+      };
+
+      setExclusionZone((current) => {
+        if (
+          current &&
+          Math.abs(current.left - next.left) < 0.5 &&
+          Math.abs(current.top - next.top) < 0.5 &&
+          Math.abs(current.right - next.right) < 0.5 &&
+          Math.abs(current.bottom - next.bottom) < 0.5
+        ) {
+          return current;
+        }
+
+        return next;
+      });
+    };
+
+    updateExclusionZone();
+
+    const resizeObserver = new ResizeObserver(updateExclusionZone);
+
+    resizeObserver.observe(aside);
+    resizeObserver.observe(canvas);
+    window.addEventListener("resize", updateExclusionZone);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateExclusionZone);
+    };
+  }, []);
+
+  const hasMeasuredWidth = canvasMetrics.width > 0;
+
   const desktopContentBottom = projects.reduce((lowestPoint, project) => {
     const layout = layouts[project._id];
 
@@ -356,28 +514,21 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       !layout ||
       !layout.visible ||
       !project.coverImageUrl ||
-      canvasMetrics.width <= 0
+      !hasMeasuredWidth
     ) {
       return lowestPoint;
     }
 
-    const cardWidth = canvasMetrics.width * (layout.width / 100);
+    const rect = getResolvedDesktopRect(
+      project,
+      layout,
+      canvasMetrics.width,
+      exclusionZone
+    );
 
-    const aspectRatio =
-      project.imageWidth && project.imageHeight
-        ? project.imageWidth / project.imageHeight
-        : 4 / 3;
-
-    const cardHeight = cardWidth / aspectRatio;
-    const cardBottom = layout.y + cardHeight;
-
-    return Math.max(lowestPoint, cardBottom);
+    return Math.max(lowestPoint, rect.top + rect.height);
   }, 0);
 
-  /*
-    Find the lowest visible mobile image using the same mobile
-    positions used by the cards below.
-  */
   const mobileContentBottom = projects.reduce((lowestPoint, project, index) => {
     const layout = layouts[project._id];
 
@@ -392,17 +543,10 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
     const mobileColumn = index % 2;
     const mobileRow = Math.floor(index / 2);
-
     const mobileY = mobileRow * 250 + (mobileColumn === 0 ? 0 : 0);
 
     const cardWidth = canvasMetrics.width * 0.49;
-
-    const aspectRatio =
-      project.imageWidth && project.imageHeight
-        ? project.imageWidth / project.imageHeight
-        : 4 / 3;
-
-    const cardHeight = cardWidth / aspectRatio;
+    const cardHeight = cardWidth / getAspectRatio(project);
     const cardBottom = mobileY + cardHeight;
 
     return Math.max(lowestPoint, cardBottom);
@@ -474,10 +618,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
     setActiveProjectId(projectId);
 
-    /*
-      Images can be selected on mobile, but dragging only works
-      on desktop.
-    */
     if (window.innerWidth < 768 || layout.locked) {
       return;
     }
@@ -525,7 +665,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     const movementY = event.clientY - drag.startClientY;
 
     const startingLeftPixels = (drag.startX / 100) * canvasBounds.width;
-
     const maximumLeft = Math.max(0, canvasBounds.width - drag.cardWidth);
 
     const nextLeftPixels = clamp(
@@ -534,17 +673,14 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       maximumLeft
     );
 
-    /*
-      There is no fixed maximum Y position.
-
-      Dragging an image lower automatically increases the canvas
-      height, and the page becomes scrollable when the image extends
-      past the viewport.
-    */
     const nextTop = Math.max(0, drag.startY + movementY);
-
     const nextX = (nextLeftPixels / canvasBounds.width) * 100;
 
+    // Note: no exclusion check here on purpose. The stored layout tracks the
+    // cursor directly; getResolvedDesktopRect() pushes the *rendered*
+    // position clear of the text block every render, which is what makes it
+    // look like the card can't be dragged underneath, while still letting it
+    // snap straight back to the cursor once it's clear again.
     setLayouts((currentLayouts) => ({
       ...currentLayouts,
       [projectId]: {
@@ -573,89 +709,12 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
   }
 
   return (
-    <section className="-mt-6 grid w-full gap-12 md:-mt-12 md:grid-cols-[minmax(0,1.65fr)_minmax(340px,0.95fr)] md:gap-10">
-      <div
-        ref={canvasRef}
-        className="work-canvas relative order-2 w-full md:order-1"
-        style={
-          {
-            "--desktop-height": `${desktopCanvasHeight}px`,
-            "--mobile-height": `${mobileCanvasHeight}px`,
-          } as CanvasStyle
-        }
-        onPointerDown={(event) => {
-          if (event.target === event.currentTarget) {
-            setActiveProjectId(null);
-          }
-        }}
+    <section className="relative -mt-6 w-full md:-mt-12">
+      {/* Selected Works block */}
+      <aside
+        ref={asideRef}
+        className="relative z-50 mb-10 w-full bg-white md:absolute md:right-[3.5%] md:top-16 md:mb-0 md:w-[34%] md:max-w-[540px] md:bg-white md:px-5 md:py-4"
       >
-        {projects.map((project, index) => {
-          const layout = layouts[project._id];
-
-          if (!layout || !layout.visible || !project.coverImageUrl) {
-            return null;
-          }
-
-          const isActive = activeProjectId === project._id;
-
-          const imageAspectRatio =
-            project.imageWidth && project.imageHeight
-              ? `${project.imageWidth} / ${project.imageHeight}`
-              : "4 / 3";
-
-          const mobileColumn = index % 2;
-          const mobileRow = Math.floor(index / 2);
-
-          const mobileX = mobileColumn === 0 ? 0 : 51;
-
-          const mobileY = mobileRow * 250 + (mobileColumn === 0 ? 0 : 0);
-
-          const style: WorkCardStyle = {
-            "--desktop-x": `${layout.x}%`,
-            "--desktop-y": `${layout.y}px`,
-            "--desktop-width": `${layout.width}%`,
-            "--mobile-x": `${mobileX}%`,
-            "--mobile-y": `${mobileY}px`,
-            "--mobile-width": "49%",
-            aspectRatio: imageAspectRatio,
-            zIndex: isActive ? 40 : index + 1,
-            touchAction: layout.locked ? "auto" : "none",
-          };
-
-          return (
-            <article
-              key={project._id}
-              style={style}
-              className={`work-card absolute select-none ${
-                layout.locked
-                  ? "cursor-pointer"
-                  : "cursor-grab active:cursor-grabbing"
-              }`}
-              onPointerDown={(event) => handlePointerDown(event, project._id)}
-              onPointerMove={(event) => handlePointerMove(event, project._id)}
-              onPointerUp={(event) => handlePointerUp(event, project._id)}
-              onPointerCancel={(event) => handlePointerUp(event, project._id)}
-            >
-              <div className="relative h-full w-full overflow-visible bg-[#eeeeee]">
-                <Image
-                  loader={sanityImageLoader}
-                  src={project.coverImageUrl}
-                  alt={project.coverImageAlt || project.title}
-                  fill
-                  sizes="(max-width: 767px) 49vw, 32vw"
-                  loading={index < 2 ? "eager" : "lazy"}
-                  draggable={false}
-                  className="object-contain"
-                />
-
-                {isActive && <SelectionFrame />}
-              </div>
-            </article>
-          );
-        })}
-      </div>
-
-      <aside className="order-1 self-start md:order-2 md:sticky md:top-24">
         <h1 className="mb-3 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-semibold leading-none tracking-[-0.035em]">
           Selected Works
         </h1>
@@ -669,7 +728,6 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             }
 
             const hasImage = Boolean(project.coverImageUrl);
-
             const isActive = activeProjectId === project._id;
 
             return (
@@ -748,6 +806,110 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
           })}
         </div>
       </aside>
+
+      {/* Full-width canvas behind and around the text block */}
+      <div
+        ref={canvasRef}
+        className="work-canvas relative z-0 w-full"
+        style={
+          {
+            "--desktop-height": `${desktopCanvasHeight}px`,
+            "--mobile-height": `${mobileCanvasHeight}px`,
+          } as CanvasStyle
+        }
+        onPointerDown={(event) => {
+          if (event.target === event.currentTarget) {
+            setActiveProjectId(null);
+          }
+        }}
+      >
+        {projects.map((project, index) => {
+          const layout = layouts[project._id];
+
+          if (!layout || !layout.visible || !project.coverImageUrl) {
+            return null;
+          }
+
+          const isActive = activeProjectId === project._id;
+
+          const imageAspectRatio =
+            project.imageWidth && project.imageHeight
+              ? `${project.imageWidth} / ${project.imageHeight}`
+              : "4 / 3";
+
+          const mobileColumn = index % 2;
+          const mobileRow = Math.floor(index / 2);
+
+          const mobileX = mobileColumn === 0 ? 0 : 51;
+          const mobileY = mobileRow * 250;
+
+          const resolvedDesktopRect = hasMeasuredWidth
+            ? getResolvedDesktopRect(
+                project,
+                layout,
+                canvasMetrics.width,
+                exclusionZone
+              )
+            : null;
+
+          const desktopX = resolvedDesktopRect
+            ? `${resolvedDesktopRect.left}px`
+            : `${layout.x}%`;
+
+          const desktopY = resolvedDesktopRect
+            ? `${resolvedDesktopRect.top}px`
+            : `${layout.y}px`;
+
+          const desktopWidth = resolvedDesktopRect
+            ? `${resolvedDesktopRect.width}px`
+            : `${layout.width}%`;
+
+          const style: WorkCardStyle = {
+            "--desktop-x": desktopX,
+            "--desktop-y": desktopY,
+            "--desktop-width": desktopWidth,
+            "--mobile-x": `${mobileX}%`,
+            "--mobile-y": `${mobileY}px`,
+            "--mobile-width": "49%",
+            aspectRatio: imageAspectRatio,
+            zIndex: isActive ? 40 : index + 1,
+            touchAction: layout.locked ? "auto" : "none",
+          };
+
+          return (
+            <article
+              key={project._id}
+              style={style}
+              className={`work-card absolute select-none ${
+                layout.locked
+                  ? "cursor-pointer"
+                  : "cursor-grab active:cursor-grabbing"
+              }`}
+              onPointerDown={(event) => handlePointerDown(event, project._id)}
+              onPointerMove={(event) => handlePointerMove(event, project._id)}
+              onPointerUp={(event) => handlePointerUp(event, project._id)}
+              onPointerCancel={(event) => handlePointerUp(event, project._id)}
+            >
+              <div className="relative h-full w-full overflow-visible bg-[#eeeeee]">
+                <Image
+                  loader={sanityImageLoader}
+                  src={project.coverImageUrl}
+                  alt={project.coverImageAlt || project.title}
+                  fill
+                  sizes="(max-width: 767px) 49vw, 32vw"
+                  loading={index < 2 ? "eager" : "lazy"}
+                  draggable={false}
+                  className={`object-contain transition-[filter] duration-300 ${
+                    isActive ? "grayscale" : ""
+                  }`}
+                />
+
+                {isActive && <SelectionFrame />}
+              </div>
+            </article>
+          );
+        })}
+      </div>
 
       <style jsx>{`
         .work-canvas {
