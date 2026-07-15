@@ -148,9 +148,16 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           <nav className="fixed right-4 top-7 z-50 min-w-[96px] font-mabrypro text-[9px] font-normal uppercase leading-[1.55] tracking-[0.01em] mix-blend-difference text-white md:right-5 md:top-10 md:min-w-[112px] md:text-[10px]">
             <Link
               href="/"
-              className="block lowercase transition-opacity hover:opacity-45"
+              aria-label="Dean Hjerpyn homepage"
+              className="absolute left-4 top-5 block text-[#1f1a13] md:left-8 md:top-8"
             >
-              dean hjerpyn
+              <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+                Dean
+              </span>
+
+              <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+                Hjerpyn
+              </span>
             </Link>
 
             <Link

@@ -47,13 +47,13 @@ export default async function FieldJournalPage() {
         <Link
           href="/"
           aria-label="Dean Hjerpyn homepage"
-          className="absolute left-4 top-5 block text-[#1f1a13] md:left-8 md:top-8"
+          className="fixed left-4 top-4 z-50 block text-black md:left-10 md:top-8"
         >
-          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+          <span className="block font-mabrypro text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.1vw]">
             Dean
           </span>
 
-          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+          <span className="block font-mabrypro text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.1vw]">
             Hjerpyn
           </span>
         </Link>
