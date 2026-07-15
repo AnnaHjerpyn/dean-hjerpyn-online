@@ -209,41 +209,34 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             {project.title}
           </h1>
 
-          <nav className="fixed right-4 top-7 z-50 min-w-[96px] font-mabrypro text-[9px] font-normal uppercase leading-[1.55] tracking-[0.01em] mix-blend-difference text-white md:right-5 md:top-10 md:min-w-[112px] md:text-[10px]">
-            <Link
-              href="/"
-              className="block lowercase transition-opacity hover:opacity-45"
-            >
-              dean hjerpyn
-            </Link>
-
+          <nav className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] mix-blend-difference text-white md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]">
             <Link
               href="/work"
-              className="block transition-opacity hover:opacity-45"
+              className="transition-opacity duration-200 hover:opacity-40"
             >
               Work
             </Link>
 
             <Link
               href="/field-journal"
-              className="block transition-opacity hover:opacity-45"
+              className="transition-opacity duration-200 hover:opacity-40"
             >
               Field Journal
             </Link>
 
             <Link
               href="/cv"
-              className="block transition-opacity hover:opacity-45"
+              className="transition-opacity duration-200 hover:opacity-40"
             >
               CV
             </Link>
 
-            <a
-              href={`mailto:${email}`}
-              className="block transition-opacity hover:opacity-45"
+            <Link
+              href="/#contact"
+              className="transition-opacity duration-200 hover:opacity-40"
             >
               Contact
-            </a>
+            </Link>
           </nav>
         </section>
       )}
