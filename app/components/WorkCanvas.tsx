@@ -85,7 +85,7 @@ const STARTING_POSITIONS = [
   },
   {
     x: 27,
-    y: 20,
+    y: 0,
     width: 39,
   },
   {
@@ -635,14 +635,13 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             >
               <div className="relative h-full w-full overflow-visible bg-[#eeeeee]">
                 <Image
-                  src={getSanityImageUrl(project.coverImageUrl)}
-                  alt={project.coverImageAlt || project.title}
+                  src={project.coverImageUrl}
+                  alt={project.title}
                   fill
-                  priority={index < 4}
-                  unoptimized
-                  draggable={false}
-                  sizes="(max-width: 767px) 49vw, 39vw"
-                  className="pointer-events-none object-cover grayscale"
+                  loading={index < STARTING_POSITIONS.length ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : "auto"}
+                  sizes="(max-width: 768px) 49vw, 50vw"
+                  className="object-cover"
                 />
 
                 {isActive && <SelectionFrame />}
