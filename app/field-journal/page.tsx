@@ -42,20 +42,52 @@ export default async function FieldJournalPage() {
 
   return (
     <main className="min-h-screen bg-white text-[#1f1a13]">
-      <header>
+      <header className="fixed inset-x-0 top-0 z-[100]">
+        {/* Logo */}
         <Link
           href="/"
           aria-label="Dean Hjerpyn homepage"
-          className="fixed left-4 top-4 z-50 block md:left-8 md:top-8"
+          className="absolute left-4 top-5 block text-[#1f1a13] md:left-8 md:top-8"
         >
-          <span className="block font-editorial text-[34px] uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
             Dean
           </span>
 
-          <span className="block font-editorial text-[34px] uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
+          <span className="block font-editorial text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.2vw]">
             Hjerpyn
           </span>
         </Link>
+
+        {/* Navigation */}
+        <nav className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]">
+          <Link
+            href="/work"
+            className="transition-opacity duration-200 hover:opacity-40"
+          >
+            Work
+          </Link>
+
+          <Link
+            href="/field-journal"
+            className="transition-opacity duration-200 hover:opacity-40"
+          >
+            Field Journal
+          </Link>
+
+          <Link
+            href="/cv"
+            className="transition-opacity duration-200 hover:opacity-40"
+          >
+            CV
+          </Link>
+
+          <Link
+            href="/#contact"
+            className="transition-opacity duration-200 hover:opacity-40"
+          >
+            Contact
+          </Link>
+        </nav>
       </header>
 
       <FieldJournalStack entries={entries} />
