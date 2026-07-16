@@ -224,15 +224,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {/* ------------------------------------------------------------------ */}
       {/* Cover image with transparent header                                */}
       {/* ------------------------------------------------------------------ */}
-      <section
-        className={`relative w-full overflow-hidden ${
-          project.coverImage?.url
-            ? "min-h-[60svh] bg-neutral-100 md:min-h-[72svh]"
-            : "min-h-[180px] bg-white md:min-h-[210px]"
-        }`}
-      >
+      <section className="relative w-full bg-white px-4 pt-4 pb-4 md:px-8 md:pt-5 md:pb-10">
         {project.coverImage?.url && (
-          <>
+          <div className="relative mx-auto aspect-[16/10] w-full max-w-[1400px] overflow-hidden md:aspect-[16/9]">
             <Image
               src={project.coverImage.url}
               alt={project.coverImage.alt || project.title}
@@ -244,15 +238,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               blurDataURL={project.coverImage.lqip}
               className="object-cover"
             />
-
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-b from-white/65 via-white/10 to-transparent"
-            />
-          </>
+          </div>
         )}
 
-        <header className="absolute inset-x-0 top-0 z-30 text-black">
+        <header className="fixed inset-x-0 top-0 z-30 text-white mix-blend-exclusion">
           <div className="grid grid-cols-1 gap-5 px-4 pb-8 pt-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-12 md:px-8 md:pb-10 md:pt-5">
             <Link
               href="/work"
