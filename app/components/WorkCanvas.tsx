@@ -43,6 +43,26 @@ type DragState = {
   cardHeight: number;
 };
 
+type ResizeCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+type ResizeState = {
+  projectId: string;
+  pointerId: number;
+  corner: ResizeCorner;
+
+  startClientX: number;
+  startClientY: number;
+
+  startX: number;
+  startY: number;
+  startWidthPercent: number;
+
+  startWidthPixels: number;
+  startHeightPixels: number;
+
+  canvasWidth: number;
+};
+
 type WorkCardStyle = CSSProperties & {
   "--desktop-x": string;
   "--desktop-y": string;
@@ -62,7 +82,6 @@ type CanvasMetrics = {
   availableHeight: number;
 };
 
-// A rectangle in canvas-relative pixels.
 type Rect = {
   left: number;
   top: number;
@@ -70,9 +89,6 @@ type Rect = {
   height: number;
 };
 
-// The "Selected Works" text block's live bounding box, in canvas-relative
-// pixels. Cards are pushed clear of this box on desktop. Null on mobile,
-// where the list sits above the canvas in normal flow instead of overlaying it.
 type ExclusionZone = {
   left: number;
   top: number;
@@ -80,10 +96,25 @@ type ExclusionZone = {
   bottom: number;
 };
 
+type SelectionFrameProps = {
+  resizable: boolean;
+
+  onResizePointerDown: (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    corner: ResizeCorner
+  ) => void;
+
+  onResizePointerMove: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+
+  onResizePointerUp: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+};
+
 const BLUE = "#2f6cff";
 
-// Minimum gap kept between a card's edge and the text block.
 const EXCLUSION_PADDING = 32;
+
+const MIN_IMAGE_WIDTH_PERCENT = 14;
+const MAX_IMAGE_WIDTH_PERCENT = 65;
 
 /*
   x and width are percentages of the image canvas.
@@ -148,11 +179,8 @@ function getAspectRatio(project: WorkProject) {
 }
 
 /*
-  If `rect` overlaps the padded exclusion zone, nudges it out along whichever
-  direction (left / right / up / down) requires the smallest move. Used both
-  to size the canvas correctly and to render cards, so dragging a card toward
-  the text block just slides it along the nearest edge instead of letting it
-  underneath.
+  If a card overlaps the Selected Works block, move it outside the
+  padded exclusion zone using the shortest movement.
 */
 function resolveExclusion(
   rect: Rect,
@@ -213,8 +241,6 @@ function resolveExclusion(
   };
 }
 
-// Converts a stored layout (percent x/width, px y) into a resolved,
-// exclusion-aware pixel rect for desktop rendering.
 function getResolvedDesktopRect(
   project: WorkProject,
   layout: ProjectLayout,
@@ -227,7 +253,12 @@ function getResolvedDesktopRect(
   const top = layout.y;
 
   return resolveExclusion(
-    { left, top, width, height },
+    {
+      left,
+      top,
+      width,
+      height,
+    },
     exclusionZone,
     EXCLUSION_PADDING,
     canvasWidth
@@ -250,6 +281,7 @@ function createInitialLayouts(projects: WorkProject[]) {
 
   projects.forEach((project, index) => {
     const position = STARTING_POSITIONS[index % STARTING_POSITIONS.length];
+
     const group = Math.floor(index / STARTING_POSITIONS.length);
 
     layouts[project._id] = {
@@ -291,8 +323,11 @@ function EyeOffIcon() {
       strokeWidth="2"
     >
       <path d="m3 3 18 18" />
+
       <path d="M10.6 6.2A11 11 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-2.1 2.8" />
+
       <path d="M6.6 6.6C3.6 8.4 2 12 2 12s3.5 6 10 6a10.8 10.8 0 0 0 4.1-.8" />
+
       <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
     </svg>
   );
@@ -330,12 +365,37 @@ function UnlockedIcon() {
   );
 }
 
-function SelectionFrame() {
-  const handles = [
-    "left-[-4px] top-[-4px]",
-    "right-[-4px] top-[-4px]",
-    "bottom-[-4px] left-[-4px]",
-    "bottom-[-4px] right-[-4px]",
+function SelectionFrame({
+  resizable,
+  onResizePointerDown,
+  onResizePointerMove,
+  onResizePointerUp,
+}: SelectionFrameProps) {
+  const handles: Array<{
+    corner: ResizeCorner;
+    position: string;
+    cursor: string;
+  }> = [
+    {
+      corner: "top-left",
+      position: "left-[-5px] top-[-5px]",
+      cursor: "cursor-nwse-resize",
+    },
+    {
+      corner: "top-right",
+      position: "right-[-5px] top-[-5px]",
+      cursor: "cursor-nesw-resize",
+    },
+    {
+      corner: "bottom-left",
+      position: "bottom-[-5px] left-[-5px]",
+      cursor: "cursor-nesw-resize",
+    },
+    {
+      corner: "bottom-right",
+      position: "bottom-[-5px] right-[-5px]",
+      cursor: "cursor-nwse-resize",
+    },
   ];
 
   return (
@@ -355,6 +415,7 @@ function SelectionFrame() {
           strokeWidth="1"
           vectorEffect="non-scaling-stroke"
         />
+
         <line
           x1="100"
           y1="0"
@@ -366,10 +427,19 @@ function SelectionFrame() {
         />
       </svg>
 
-      {handles.map((position) => (
-        <span
-          key={position}
-          className={`absolute h-[8px] w-[8px] border border-[#2f6cff] bg-white ${position}`}
+      {handles.map(({ corner, position, cursor }) => (
+        <button
+          key={corner}
+          type="button"
+          aria-label={`Resize image from ${corner.replace("-", " ")}`}
+          disabled={!resizable}
+          className={`absolute h-[10px] w-[10px] border border-[#2f6cff] bg-white ${position} ${
+            resizable ? `pointer-events-auto ${cursor}` : "pointer-events-none"
+          }`}
+          onPointerDown={(event) => onResizePointerDown(event, corner)}
+          onPointerMove={onResizePointerMove}
+          onPointerUp={onResizePointerUp}
+          onPointerCancel={onResizePointerUp}
         />
       ))}
     </div>
@@ -379,7 +449,9 @@ function SelectionFrame() {
 export default function WorkCanvas({ projects }: WorkCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const asideRef = useRef<HTMLElement>(null);
+
   const dragState = useRef<DragState | null>(null);
+  const resizeState = useRef<ResizeState | null>(null);
 
   const [layouts, setLayouts] = useState<Record<string, ProjectLayout>>(() =>
     createInitialLayouts(projects)
@@ -397,6 +469,34 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
   );
 
   useEffect(() => {
+    setLayouts((currentLayouts) => {
+      const nextLayouts = {
+        ...currentLayouts,
+      };
+
+      projects.forEach((project, index) => {
+        if (nextLayouts[project._id]) {
+          return;
+        }
+
+        const position = STARTING_POSITIONS[index % STARTING_POSITIONS.length];
+
+        const group = Math.floor(index / STARTING_POSITIONS.length);
+
+        nextLayouts[project._id] = {
+          x: position.x,
+          y: position.y + group * 900,
+          width: position.width,
+          visible: true,
+          locked: true,
+        };
+      });
+
+      return nextLayouts;
+    });
+  }, [projects]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
@@ -407,6 +507,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       const bounds = canvas.getBoundingClientRect();
 
       const canvasTopOnPage = bounds.top + window.scrollY;
+
       const nextWidth = bounds.width;
 
       const nextAvailableHeight = Math.max(
@@ -436,17 +537,16 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     const resizeObserver = new ResizeObserver(updateCanvasMetrics);
 
     resizeObserver.observe(canvas);
+
     window.addEventListener("resize", updateCanvasMetrics);
 
     return () => {
       resizeObserver.disconnect();
+
       window.removeEventListener("resize", updateCanvasMetrics);
     };
   }, []);
 
-  // Tracks the "Selected Works" text block's live bounding box relative to
-  // the canvas, so cards can be kept clear of it. Desktop only — on mobile
-  // the list sits above the canvas in normal flow, so there's no overlap.
   useEffect(() => {
     const aside = asideRef.current;
     const canvas = canvasRef.current;
@@ -460,13 +560,16 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
       if (!isDesktop) {
         setExclusionZone((current) => (current === null ? current : null));
+
         return;
       }
 
       const asideBounds = aside.getBoundingClientRect();
+
       const canvasBounds = canvas.getBoundingClientRect();
 
       const left = asideBounds.left - canvasBounds.left;
+
       const top = asideBounds.top - canvasBounds.top;
 
       const next: ExclusionZone = {
@@ -497,10 +600,12 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
     resizeObserver.observe(aside);
     resizeObserver.observe(canvas);
+
     window.addEventListener("resize", updateExclusionZone);
 
     return () => {
       resizeObserver.disconnect();
+
       window.removeEventListener("resize", updateExclusionZone);
     };
   }, []);
@@ -541,12 +646,13 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       return lowestPoint;
     }
 
-    const mobileColumn = index % 2;
     const mobileRow = Math.floor(index / 2);
-    const mobileY = mobileRow * 250 + (mobileColumn === 0 ? 0 : 0);
+    const mobileY = mobileRow * 250;
 
     const cardWidth = canvasMetrics.width * 0.49;
+
     const cardHeight = cardWidth / getAspectRatio(project);
+
     const cardBottom = mobileY + cardHeight;
 
     return Math.max(lowestPoint, cardBottom);
@@ -571,6 +677,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
     setLayouts((currentLayouts) => ({
       ...currentLayouts,
+
       [projectId]: {
         ...currentLayouts[projectId],
         visible: nextVisible,
@@ -593,8 +700,12 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       return;
     }
 
+    dragState.current = null;
+    resizeState.current = null;
+
     setLayouts((currentLayouts) => ({
       ...currentLayouts,
+
       [projectId]: {
         ...currentLayouts[projectId],
         locked: !currentLayouts[projectId].locked,
@@ -604,11 +715,197 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     setActiveProjectId(projectId);
   }
 
+  function handleResizePointerDown(
+    event: ReactPointerEvent<HTMLButtonElement>,
+    projectId: string,
+    corner: ResizeCorner
+  ) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const layout = layouts[projectId];
+    const canvas = canvasRef.current;
+
+    if (!layout || !canvas || layout.locked || window.innerWidth < 768) {
+      return;
+    }
+
+    const card = event.currentTarget.closest<HTMLElement>(".work-card");
+
+    if (!card) {
+      return;
+    }
+
+    const canvasBounds = canvas.getBoundingClientRect();
+
+    const cardBounds = card.getBoundingClientRect();
+
+    if (canvasBounds.width <= 0) {
+      return;
+    }
+
+    dragState.current = null;
+
+    resizeState.current = {
+      projectId,
+      pointerId: event.pointerId,
+      corner,
+
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+
+      startX: layout.x,
+      startY: layout.y,
+      startWidthPercent: layout.width,
+
+      startWidthPixels: cardBounds.width,
+      startHeightPixels: cardBounds.height,
+
+      canvasWidth: canvasBounds.width,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleResizePointerMove(
+    event: ReactPointerEvent<HTMLButtonElement>
+  ) {
+    const resize = resizeState.current;
+
+    if (!resize || resize.pointerId !== event.pointerId) {
+      return;
+    }
+
+    event.stopPropagation();
+    event.preventDefault();
+
+    const movementX = event.clientX - resize.startClientX;
+
+    const resizingFromLeft =
+      resize.corner === "top-left" || resize.corner === "bottom-left";
+
+    const resizingFromTop =
+      resize.corner === "top-left" || resize.corner === "top-right";
+
+    const horizontalResize = resizingFromLeft ? -movementX : movementX;
+
+    const proposedWidthPixels = resize.startWidthPixels + horizontalResize;
+
+    const proposedWidthPercent =
+      (proposedWidthPixels / resize.canvasWidth) * 100;
+
+    let nextWidthPercent = clamp(
+      proposedWidthPercent,
+      MIN_IMAGE_WIDTH_PERCENT,
+      MAX_IMAGE_WIDTH_PERCENT
+    );
+
+    const aspectRatio = resize.startWidthPixels / resize.startHeightPixels;
+
+    let nextWidthPixels = resize.canvasWidth * (nextWidthPercent / 100);
+
+    let nextHeightPixels = nextWidthPixels / aspectRatio;
+
+    let widthDifferencePixels = nextWidthPixels - resize.startWidthPixels;
+
+    let heightDifferencePixels = nextHeightPixels - resize.startHeightPixels;
+
+    let nextX = resize.startX;
+    let nextY = resize.startY;
+
+    if (resizingFromLeft) {
+      const startLeftPixels = resize.canvasWidth * (resize.startX / 100);
+
+      const maximumWidthFromLeft = startLeftPixels + resize.startWidthPixels;
+
+      const maximumWidthFromLeftPercent =
+        (maximumWidthFromLeft / resize.canvasWidth) * 100;
+
+      nextWidthPercent = Math.min(
+        nextWidthPercent,
+        maximumWidthFromLeftPercent
+      );
+
+      nextWidthPixels = resize.canvasWidth * (nextWidthPercent / 100);
+
+      nextHeightPixels = nextWidthPixels / aspectRatio;
+
+      widthDifferencePixels = nextWidthPixels - resize.startWidthPixels;
+
+      heightDifferencePixels = nextHeightPixels - resize.startHeightPixels;
+
+      const nextLeftPixels = startLeftPixels - widthDifferencePixels;
+
+      nextX =
+        (clamp(nextLeftPixels, 0, resize.canvasWidth - nextWidthPixels) /
+          resize.canvasWidth) *
+        100;
+    } else {
+      const currentLeftPixels = resize.canvasWidth * (resize.startX / 100);
+
+      const maximumWidthPixels = resize.canvasWidth - currentLeftPixels;
+
+      const maximumWidthPercent =
+        (maximumWidthPixels / resize.canvasWidth) * 100;
+
+      nextWidthPercent = Math.min(nextWidthPercent, maximumWidthPercent);
+
+      nextWidthPixels = resize.canvasWidth * (nextWidthPercent / 100);
+
+      nextHeightPixels = nextWidthPixels / aspectRatio;
+
+      heightDifferencePixels = nextHeightPixels - resize.startHeightPixels;
+    }
+
+    if (resizingFromTop) {
+      nextY = Math.max(0, resize.startY - heightDifferencePixels);
+    }
+
+    setLayouts((currentLayouts) => {
+      const current = currentLayouts[resize.projectId];
+
+      if (!current) {
+        return currentLayouts;
+      }
+
+      return {
+        ...currentLayouts,
+
+        [resize.projectId]: {
+          ...current,
+          x: nextX,
+          y: nextY,
+          width: nextWidthPercent,
+        },
+      };
+    });
+  }
+
+  function handleResizePointerUp(event: ReactPointerEvent<HTMLButtonElement>) {
+    const resize = resizeState.current;
+
+    if (!resize || resize.pointerId !== event.pointerId) {
+      return;
+    }
+
+    event.stopPropagation();
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    resizeState.current = null;
+  }
+
   function handlePointerDown(
     event: ReactPointerEvent<HTMLElement>,
     projectId: string
   ) {
     event.stopPropagation();
+
+    if (resizeState.current) {
+      return;
+    }
 
     const layout = layouts[projectId];
 
@@ -636,6 +933,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     };
 
     event.currentTarget.setPointerCapture(event.pointerId);
+
     event.preventDefault();
   }
 
@@ -643,6 +941,10 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     event: ReactPointerEvent<HTMLElement>,
     projectId: string
   ) {
+    if (resizeState.current) {
+      return;
+    }
+
     const drag = dragState.current;
     const canvas = canvasRef.current;
 
@@ -662,9 +964,11 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     }
 
     const movementX = event.clientX - drag.startClientX;
+
     const movementY = event.clientY - drag.startClientY;
 
     const startingLeftPixels = (drag.startX / 100) * canvasBounds.width;
+
     const maximumLeft = Math.max(0, canvasBounds.width - drag.cardWidth);
 
     const nextLeftPixels = clamp(
@@ -674,21 +978,26 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     );
 
     const nextTop = Math.max(0, drag.startY + movementY);
+
     const nextX = (nextLeftPixels / canvasBounds.width) * 100;
 
-    // Note: no exclusion check here on purpose. The stored layout tracks the
-    // cursor directly; getResolvedDesktopRect() pushes the *rendered*
-    // position clear of the text block every render, which is what makes it
-    // look like the card can't be dragged underneath, while still letting it
-    // snap straight back to the cursor once it's clear again.
-    setLayouts((currentLayouts) => ({
-      ...currentLayouts,
-      [projectId]: {
-        ...currentLayouts[projectId],
-        x: nextX,
-        y: nextTop,
-      },
-    }));
+    setLayouts((currentLayouts) => {
+      const current = currentLayouts[projectId];
+
+      if (!current) {
+        return currentLayouts;
+      }
+
+      return {
+        ...currentLayouts,
+
+        [projectId]: {
+          ...current,
+          x: nextX,
+          y: nextTop,
+        },
+      };
+    });
   }
 
   function handlePointerUp(
@@ -710,7 +1019,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
   return (
     <section className="relative z-0 w-full">
-      {/* Selected Works block */}
+      {/* Selected Works list */}
       <aside
         ref={asideRef}
         className="relative z-20 mb-10 w-full bg-white md:absolute md:right-[3.5%] md:top-16 md:mb-0 md:w-[34%] md:max-w-[540px] md:px-5 md:py-4"
@@ -728,6 +1037,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             }
 
             const hasImage = Boolean(project.coverImageUrl);
+
             const isActive = activeProjectId === project._id;
 
             return (
@@ -766,7 +1076,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
                   aria-pressed={!layout.locked}
                   title={
                     layout.locked
-                      ? "Unlock image to drag it"
+                      ? "Unlock image to move or resize it"
                       : "Lock image in place"
                   }
                   className={`mt-[0.06em] flex shrink-0 items-center justify-center transition-opacity duration-200 hover:opacity-40 disabled:cursor-not-allowed ${
@@ -807,7 +1117,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
         </div>
       </aside>
 
-      {/* Full-width canvas behind and around the text block */}
+      {/* Image canvas */}
       <div
         ref={canvasRef}
         className="work-canvas relative z-0 w-full"
@@ -838,9 +1148,11 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
               : "4 / 3";
 
           const mobileColumn = index % 2;
+
           const mobileRow = Math.floor(index / 2);
 
           const mobileX = mobileColumn === 0 ? 0 : 51;
+
           const mobileY = mobileRow * 250;
 
           const resolvedDesktopRect = hasMeasuredWidth
@@ -868,11 +1180,15 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             "--desktop-x": desktopX,
             "--desktop-y": desktopY,
             "--desktop-width": desktopWidth,
+
             "--mobile-x": `${mobileX}%`,
             "--mobile-y": `${mobileY}px`,
             "--mobile-width": "49%",
+
             aspectRatio: imageAspectRatio,
+
             zIndex: isActive ? 40 : index + 1,
+
             touchAction: layout.locked ? "auto" : "none",
           };
 
@@ -899,12 +1215,21 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
                   sizes="(max-width: 767px) 49vw, 32vw"
                   loading={index < 2 ? "eager" : "lazy"}
                   draggable={false}
-                  className={`object-contain transition-[filter] duration-300 ${
+                  className={`pointer-events-none object-contain transition-[filter] duration-300 ${
                     isActive ? "grayscale" : ""
                   }`}
                 />
 
-                {isActive && <SelectionFrame />}
+                {isActive && (
+                  <SelectionFrame
+                    resizable={!layout.locked}
+                    onResizePointerDown={(event, corner) =>
+                      handleResizePointerDown(event, project._id, corner)
+                    }
+                    onResizePointerMove={handleResizePointerMove}
+                    onResizePointerUp={handleResizePointerUp}
+                  />
+                )}
               </div>
             </article>
           );
