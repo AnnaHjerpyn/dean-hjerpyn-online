@@ -466,7 +466,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               })}
             </div>
           ) : (
-            <div className="columns-1 gap-5 sm:columns-2 md:columns-3 md:gap-6 lg:columns-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
               {galleryItems.map((item, index) => {
                 if (item._type === "image") {
                   const width = item.width || 1800;
