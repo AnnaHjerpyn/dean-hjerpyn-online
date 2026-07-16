@@ -709,11 +709,11 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
   }
 
   return (
-    <section className="relative -mt-6 w-full md:-mt-12">
+    <section className="relative z-0 w-full">
       {/* Selected Works block */}
       <aside
         ref={asideRef}
-        className="relative z-50 mb-10 w-full bg-white md:absolute md:right-[3.5%] md:top-16 md:mb-0 md:w-[34%] md:max-w-[540px] md:bg-white md:px-5 md:py-4"
+        className="relative z-20 mb-10 w-full bg-white md:absolute md:right-[3.5%] md:top-16 md:mb-0 md:w-[34%] md:max-w-[540px] md:px-5 md:py-4"
       >
         <h1 className="mb-3 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-semibold leading-none tracking-[-0.035em]">
           Selected Works

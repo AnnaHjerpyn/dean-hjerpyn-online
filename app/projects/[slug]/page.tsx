@@ -4,9 +4,14 @@ import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
 import { client } from "@/sanity/lib/client";
+import ExpandableImage from "@/app/components/ExpandableImage";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
 
 type SanityImage = {
   url: string;
@@ -69,6 +74,10 @@ type ProjectPageProps = {
   }>;
 };
 
+/* -------------------------------------------------------------------------- */
+/* Queries                                                                    */
+/* -------------------------------------------------------------------------- */
+
 async function getProject(slug: string): Promise<Project | null> {
   return client.fetch(
     `
@@ -99,6 +108,7 @@ async function getProject(slug: string): Promise<Project | null> {
         "gallery": gallery[] {
           _key,
           _type,
+
           ...select(
             _type == "image" => {
               alt,
@@ -108,10 +118,12 @@ async function getProject(slug: string): Promise<Project | null> {
               "height": asset->metadata.dimensions.height,
               "lqip": asset->metadata.lqip
             },
+
             _type == "video" => {
               caption,
               "url": file.asset->url
             },
+
             _type == "pdf" => {
               "title": title,
               "url": file.asset->url,
@@ -137,6 +149,10 @@ async function getSiteSettings(): Promise<SiteSettings | null> {
     { cache: "no-store" }
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Page                                                                       */
+/* -------------------------------------------------------------------------- */
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { slug } = await params;
@@ -188,82 +204,111 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   const galleryItems = (project.gallery || []).filter((item) => item.url);
 
+  const galleryCount = galleryItems.length;
+  const useLargeGallery = galleryCount <= 3;
+
   return (
-    <main className="min-h-screen bg-white text-black">
-      {/* Project heading and navigation */}
-      {/* Sticky project title */}
-      {project.coverImage?.url && (
-        <section className="relative min-h-[72vh] w-full overflow-hidden bg-neutral-100 md:min-h-screen">
-          <Image
-            src={project.coverImage.url}
-            alt={project.coverImage.alt || project.title}
-            fill
-            priority
-            sizes="100vw"
-            placeholder={project.coverImage.lqip ? "blur" : undefined}
-            blurDataURL={project.coverImage.lqip}
-            className="object-cover"
-          />
+    <main className="min-h-screen overflow-x-hidden bg-white text-black">
+      {/* ------------------------------------------------------------------ */}
+      {/* Fixed header                                                       */}
+      {/* ------------------------------------------------------------------ */}
 
-          <h1 className="fixed left-4 top-7 z-40 max-w-[calc(100vw-145px)] font-mabrypro text-[clamp(2rem,4vw,4.25rem)] font-semibold lowercase leading-[0.9] tracking-[-0.045em] mix-blend-difference text-white md:left-5 md:top-10">
-            {project.title}
-          </h1>
+      <header className="fixed inset-x-0 top-0 z-50 bg-white text-black">
+        <div className="flex min-h-[106px] w-full items-center justify-between gap-6 px-4 md:px-8">
+          <Link
+            href="/work"
+            aria-label="Return to selected works"
+            className="min-w-0 max-w-[calc(100vw-145px)] transition-opacity hover:opacity-45 md:max-w-[calc(100vw-480px)]"
+          >
+            <h1 className="break-words font-mabrypro text-[clamp(1.8rem,4vw,4.5rem)] font-semibold lowercase leading-[0.86] tracking-[-0.055em]">
+              {project.title}
+            </h1>
+          </Link>
 
-          <nav className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] mix-blend-difference text-white md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]">
+          <nav
+            aria-label="Primary navigation"
+            className="flex shrink-0 items-center gap-x-8 font-mabrypro text-[11px] font-normal uppercase leading-none tracking-[0.1em]"
+          >
             <Link
               href="/work"
-              className="transition-opacity duration-200 hover:opacity-40"
+              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
             >
               Work
             </Link>
 
             <Link
               href="/field-journal"
-              className="transition-opacity duration-200 hover:opacity-40"
+              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
             >
               Field Journal
             </Link>
 
             <Link
               href="/cv"
-              className="transition-opacity duration-200 hover:opacity-40"
+              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
             >
               CV
             </Link>
 
-            <Link
-              href="/#contact"
-              className="transition-opacity duration-200 hover:opacity-40"
+            <a
+              href={`mailto:${email}`}
+              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
             >
               Contact
-            </Link>
+            </a>
           </nav>
+        </div>
+      </header>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Cover image                                                        */}
+      {/* ------------------------------------------------------------------ */}
+
+      {project.coverImage?.url ? (
+        <section className="relative mt-[78px] min-h-[65svh] w-full bg-neutral-100 md:mt-[100px] md:min-h-[calc(100svh-100px)]">
+          <Image
+            src={project.coverImage.url}
+            alt={project.coverImage.alt || project.title}
+            fill
+            priority
+            loading="eager"
+            sizes="100vw"
+            placeholder={project.coverImage.lqip ? "blur" : undefined}
+            blurDataURL={project.coverImage.lqip}
+            className="object-cover"
+          />
         </section>
+      ) : (
+        <section className="mt-[78px] min-h-[40svh] bg-neutral-100 md:mt-[100px] md:min-h-[55svh]" />
       )}
 
-      {/* Description and project information */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Description and project details                                    */}
+      {/* ------------------------------------------------------------------ */}
+
       <section className="px-5 py-20 md:px-8 md:py-28 lg:py-32">
-        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-x-6">
-          {/* Empty columns create the large left margin from the reference */}
-          <div className="md:col-start-4 md:col-span-5">
+        <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-x-8">
+          {/* Project description */}
+
+          <div className="md:col-span-6 md:col-start-3 lg:col-span-5 lg:col-start-4">
             {project.description && project.description.length > 0 ? (
-              <div className="font-mabrypro text-[12px] font-medium leading-[1.08] tracking-[-0.015em] md:text-[13px] lg:text-[14px]">
+              <div className="font-mabrypro text-[16px] font-normal leading-[1.22] tracking-[-0.018em] md:text-[18px] lg:text-[20px]">
                 <PortableText
                   value={project.description}
                   components={{
                     block: {
                       normal: ({ children }) => (
-                        <p className="mb-3 last:mb-0">{children}</p>
+                        <p className="mb-5 last:mb-0">{children}</p>
                       ),
 
                       h2: ({ children }) => (
-                        <h2 className="mb-4 mt-8 text-[1.15em] font-semibold leading-none">
+                        <h2 className="mb-5 mt-10 text-[1.25em] font-semibold leading-[0.95] tracking-[-0.025em]">
                           {children}
                         </h2>
                       ),
 
                       h3: ({ children }) => (
-                        <h3 className="mb-3 mt-6 text-[1em] font-semibold leading-none">
+                        <h3 className="mb-4 mt-8 text-[1.05em] font-semibold leading-none">
                           {children}
                         </h3>
                       ),
@@ -271,24 +316,24 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
                     list: {
                       bullet: ({ children }) => (
-                        <div className="my-3 space-y-1">{children}</div>
+                        <div className="my-5 space-y-2">{children}</div>
                       ),
 
                       number: ({ children }) => (
-                        <div className="my-3 space-y-1">{children}</div>
+                        <div className="my-5 space-y-2">{children}</div>
                       ),
                     },
 
                     listItem: {
                       bullet: ({ children }) => (
-                        <div className="grid grid-cols-[12px_1fr] gap-1">
-                          <span>//</span>
+                        <div className="grid grid-cols-[22px_1fr] gap-1">
+                          <span aria-hidden="true">//</span>
                           <span>{children}</span>
                         </div>
                       ),
 
                       number: ({ children, value }) => (
-                        <div className="grid grid-cols-[18px_1fr] gap-1">
+                        <div className="grid grid-cols-[28px_1fr] gap-1">
                           <span>{value.level}.</span>
                           <span>{children}</span>
                         </div>
@@ -298,23 +343,24 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                 />
               </div>
             ) : (
-              <p className="font-mabrypro text-[12px] leading-[1.1] md:text-[13px]">
+              <p className="font-mabrypro text-[16px] leading-[1.2] md:text-[18px]">
                 Project description coming soon.
               </p>
             )}
           </div>
 
           {/* Project metadata */}
+
           {projectDetails.length > 0 && (
-            <aside className="md:col-start-10 md:col-span-3">
-              <dl className="grid grid-cols-2 gap-x-7 gap-y-5 font-mabrypro">
+            <aside className="md:col-span-3 md:col-start-10">
+              <dl className="grid grid-cols-2 gap-x-7 gap-y-7 font-mabrypro md:grid-cols-1 lg:grid-cols-2">
                 {projectDetails.map((detail) => (
                   <div key={detail.label}>
-                    <dt className="mb-1 text-[7px] font-normal uppercase leading-none tracking-[0.03em] md:text-[8px]">
+                    <dt className="mb-1.5 text-[9px] font-normal uppercase leading-none tracking-[0.06em] text-neutral-500 md:text-[10px]">
                       {detail.label}
                     </dt>
 
-                    <dd className="text-[8px] font-medium uppercase leading-[1.15] tracking-[0.01em] md:text-[9px]">
+                    <dd className="text-[11px] font-medium uppercase leading-[1.25] tracking-[0.015em] md:text-[12px]">
                       {detail.value}
                     </dd>
                   </div>
@@ -325,95 +371,191 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </section>
 
-      {/* Additional project gallery */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Additional project gallery                                         */}
+      {/* ------------------------------------------------------------------ */}
+
       {galleryItems.length > 0 && (
         <section className="px-4 py-10 md:px-8 md:py-16">
-          <div className="columns-2 gap-3 sm:columns-3 md:columns-4 md:gap-4">
-            {galleryItems.map((item, index) => {
-              if (item._type === "image") {
-                const width = item.width || 1800;
-                const height = item.height || 1200;
+          {useLargeGallery ? (
+            <div
+              className={
+                galleryCount === 1
+                  ? "mx-auto grid max-w-[1500px] grid-cols-1 gap-5 md:gap-8"
+                  : "grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-8"
+              }
+            >
+              {galleryItems.map((item, index) => {
+                const makeLastItemFullWidth = galleryCount === 3 && index === 2;
+
+                const itemClassName = makeLastItemFullWidth
+                  ? "md:col-span-2"
+                  : "";
+
+                if (item._type === "image") {
+                  const width = item.width || 1800;
+                  const height = item.height || 1200;
+
+                  const imageAlt =
+                    item.alt || `${project.title} project image ${index + 1}`;
+
+                  const imageSizes =
+                    galleryCount === 1 || makeLastItemFullWidth
+                      ? "100vw"
+                      : "(max-width: 767px) 100vw, 50vw";
+
+                  return (
+                    <figure key={item._key} className={itemClassName}>
+                      <ExpandableImage
+                        src={item.url}
+                        alt={imageAlt}
+                        width={width}
+                        height={height}
+                        sizes={imageSizes}
+                        lqip={item.lqip}
+                      />
+
+                      {item.caption && (
+                        <figcaption className="mt-2 font-mabrypro text-[9px] uppercase tracking-[0.04em] text-neutral-500 md:text-[10px]">
+                          {item.caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                }
+
+                if (item._type === "video") {
+                  return (
+                    <figure key={item._key} className={itemClassName}>
+                      {/*
+                        eslint-disable-next-line jsx-a11y/media-has-caption --
+                        source videos are not captioned in Sanity yet
+                      */}
+                      <video
+                        src={item.url}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        className="h-auto max-h-[92svh] w-full bg-black object-contain"
+                      />
+
+                      {item.caption && (
+                        <figcaption className="mt-2 font-mabrypro text-[9px] uppercase tracking-[0.04em] text-neutral-500 md:text-[10px]">
+                          {item.caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                }
 
                 return (
-                  <figure
+                  <div
                     key={item._key}
-                    className="mb-3 break-inside-avoid md:mb-4"
+                    className={`flex min-h-[240px] items-center justify-center border border-black px-6 py-10 md:min-h-[360px] ${itemClassName}`}
                   >
-                    <Image
-                      src={item.url}
-                      alt={
-                        item.alt ||
-                        `${project.title} project image ${index + 1}`
-                      }
-                      width={width}
-                      height={height}
-                      sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, 25vw"
-                      placeholder={item.lqip ? "blur" : undefined}
-                      blurDataURL={item.lqip}
-                      className="h-auto w-full"
-                    />
-
-                    {item.caption && (
-                      <figcaption className="mt-1 font-mabrypro text-[7px] uppercase tracking-[0.03em] text-neutral-500 md:text-[8px]">
-                        {item.caption}
-                      </figcaption>
-                    )}
-                  </figure>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mabrypro text-[12px] font-medium uppercase tracking-[0.04em] transition-opacity hover:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:text-[14px]"
+                    >
+                      View PDF — {item.title || item.filename || "Document"}
+                    </a>
+                  </div>
                 );
-              }
+              })}
+            </div>
+          ) : (
+            <div className="columns-1 gap-5 sm:columns-2 md:columns-3 md:gap-6 lg:columns-4">
+              {galleryItems.map((item, index) => {
+                if (item._type === "image") {
+                  const width = item.width || 1800;
+                  const height = item.height || 1200;
 
-              if (item._type === "video") {
+                  const imageAlt =
+                    item.alt || `${project.title} project image ${index + 1}`;
+
+                  return (
+                    <figure
+                      key={item._key}
+                      className="mb-5 break-inside-avoid md:mb-6"
+                    >
+                      <ExpandableImage
+                        src={item.url}
+                        alt={imageAlt}
+                        width={width}
+                        height={height}
+                        sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
+                        lqip={item.lqip}
+                      />
+
+                      {item.caption && (
+                        <figcaption className="mt-2 font-mabrypro text-[9px] uppercase tracking-[0.04em] text-neutral-500 md:text-[10px]">
+                          {item.caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                }
+
+                if (item._type === "video") {
+                  return (
+                    <figure
+                      key={item._key}
+                      className="mb-5 break-inside-avoid md:mb-6"
+                    >
+                      {/*
+                        eslint-disable-next-line jsx-a11y/media-has-caption --
+                        source videos are not captioned in Sanity yet
+                      */}
+                      <video
+                        src={item.url}
+                        controls
+                        playsInline
+                        preload="metadata"
+                        className="h-auto w-full bg-black"
+                      />
+
+                      {item.caption && (
+                        <figcaption className="mt-2 font-mabrypro text-[9px] uppercase tracking-[0.04em] text-neutral-500 md:text-[10px]">
+                          {item.caption}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                }
+
                 return (
-                  <figure
+                  <div
                     key={item._key}
-                    className="mb-3 break-inside-avoid md:mb-4"
+                    className="mb-5 break-inside-avoid border border-black px-4 py-6 md:mb-6"
                   >
-                    {/*
-                      eslint-disable-next-line jsx-a11y/media-has-caption --
-                      source videos aren't captioned in Sanity yet
-                    */}
-                    <video
-                      src={item.url}
-                      controls
-                      playsInline
-                      preload="metadata"
-                      className="h-auto w-full"
-                    />
-
-                    {item.caption && (
-                      <figcaption className="mt-1 font-mabrypro text-[7px] uppercase tracking-[0.03em] text-neutral-500 md:text-[8px]">
-                        {item.caption}
-                      </figcaption>
-                    )}
-                  </figure>
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 font-mabrypro text-[10px] font-medium uppercase tracking-[0.04em] transition-opacity hover:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:text-[11px]"
+                    >
+                      View PDF — {item.title || item.filename || "Document"}
+                    </a>
+                  </div>
                 );
-              }
-
-              // PDF
-              return (
-                <div
-                  key={item._key}
-                  className="mb-3 break-inside-avoid border border-black px-3 py-4 md:mb-4"
-                >
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-mabrypro text-[8px] font-medium uppercase tracking-[0.03em] transition-opacity hover:opacity-45 md:text-[9px]"
-                  >
-                    View PDF — {item.title || item.filename || "Document"}
-                  </a>
-                </div>
-              );
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </section>
       )}
 
-      {/* Bottom navigation */}
+      {/* ------------------------------------------------------------------ */}
+      {/* Bottom navigation                                                  */}
+      {/* ------------------------------------------------------------------ */}
+
       <footer className="px-5 py-8 md:px-8 md:py-10">
-        <div className="flex items-center justify-between border-t border-black pt-4 font-mabrypro text-[8px] font-normal uppercase tracking-[0.04em] md:text-[9px]">
-          <Link href="/work" className="transition-opacity hover:opacity-45">
+        <div className="flex items-center justify-between border-t border-black pt-4 font-mabrypro text-[9px] font-normal uppercase tracking-[0.05em] md:text-[10px]">
+          <Link
+            href="/work"
+            className="transition-opacity hover:opacity-45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+          >
             ← All projects
           </Link>
 
