@@ -207,6 +207,18 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const galleryCount = galleryItems.length;
   const useLargeGallery = galleryCount <= 3;
 
+  const imageGalleryItems = galleryItems.filter(
+    (item): item is GalleryImage => item._type === "image"
+  );
+
+  const lightboxImages = imageGalleryItems.map((item, i) => ({
+    src: item.url,
+    alt: item.alt || `${project.title} project image ${i + 1}`,
+    width: item.width || 1800,
+    height: item.height || 1200,
+    lqip: item.lqip,
+  }));
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-white text-black">
       {/* ------------------------------------------------------------------ */}
@@ -422,6 +434,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         height={height}
                         sizes={imageSizes}
                         lqip={item.lqip}
+                        images={lightboxImages}
+                        index={imageGalleryItems.findIndex(
+                          (img) => img._key === item._key
+                        )}
                       />
 
                       {item.caption && (
@@ -496,6 +512,10 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
                         height={height}
                         sizes="(max-width: 639px) 100vw, (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 25vw"
                         lqip={item.lqip}
+                        images={lightboxImages}
+                        index={imageGalleryItems.findIndex(
+                          (img) => img._key === item._key
+                        )}
                       />
 
                       {item.caption && (
