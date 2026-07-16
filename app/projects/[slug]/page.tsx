@@ -210,86 +210,86 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return (
     <main className="min-h-screen overflow-x-hidden bg-white text-black">
       {/* ------------------------------------------------------------------ */}
-      {/* Sticky header                                                      */}
+      {/* Cover image with transparent header                                */}
       {/* ------------------------------------------------------------------ */}
+      <section
+        className={`relative w-full overflow-hidden ${
+          project.coverImage?.url
+            ? "min-h-[60svh] bg-neutral-100 md:min-h-[72svh]"
+            : "min-h-[180px] bg-white md:min-h-[210px]"
+        }`}
+      >
+        {project.coverImage?.url && (
+          <>
+            <Image
+              src={project.coverImage.url}
+              alt={project.coverImage.alt || project.title}
+              fill
+              priority
+              loading="eager"
+              sizes="100vw"
+              placeholder={project.coverImage.lqip ? "blur" : undefined}
+              blurDataURL={project.coverImage.lqip}
+              className="object-cover"
+            />
 
-      <header className="sticky inset-x-0 top-0 z-50 bg-white text-black">
-        <div className="flex flex-col gap-3 px-4 py-4 md:min-h-[106px] md:flex-row md:items-end md:justify-between md:gap-6 md:px-8 md:py-6">
-          <Link
-            href="/work"
-            aria-label="Return to selected works"
-            className="min-w-0 transition-opacity hover:opacity-45 md:max-w-[calc(100vw-480px)]"
-          >
-            <h1
-              title={project.title}
-              className="break-words font-mabrypro text-[clamp(1.4rem,7vw,4.5rem)] font-semibold lowercase leading-[0.86] tracking-[-0.055em] md:text-[clamp(1.8rem,4vw,4.5rem)]"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {project.title}
-            </h1>
-          </Link>
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-b from-white/65 via-white/10 to-transparent"
+            />
+          </>
+        )}
 
-          <nav
-            aria-label="Primary navigation"
-            className="flex shrink-0 items-center justify-between gap-x-5 border-t border-black pt-3 font-mabrypro text-[11px] font-normal uppercase leading-none tracking-[0.1em] md:justify-normal md:gap-x-8 md:border-t-0 md:pt-0"
-          >
+        <header className="absolute inset-x-0 top-0 z-30 text-black">
+          <div className="grid grid-cols-1 gap-5 px-4 pb-8 pt-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-12 md:px-8 md:pb-10 md:pt-5">
             <Link
               href="/work"
-              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+              aria-label="Return to selected works"
+              className="min-w-0 transition-opacity hover:opacity-45"
             >
-              Work
+              <h1
+                title={project.title}
+                className="max-w-[900px] font-mabrypro text-[clamp(2.8rem,8vw,5rem)] font-semibold lowercase leading-[0.84] tracking-[-0.06em] md:text-[clamp(3.6rem,5vw,6rem)]"
+              >
+                {project.title}
+              </h1>
             </Link>
 
-            <Link
-              href="/field-journal"
-              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+            <nav
+              aria-label="Primary navigation"
+              className="flex shrink-0 items-center justify-between gap-x-5 border-t border-black pt-3 font-mabrypro text-[10px] font-normal uppercase leading-none tracking-[0.12em] sm:justify-start md:mt-3 md:justify-end md:gap-x-9 md:border-t-0 md:pt-0 md:text-[11px]"
             >
-              Field Journal
-            </Link>
+              <Link
+                href="/work"
+                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                Work
+              </Link>
 
-            <Link
-              href="/cv"
-              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-            >
-              CV
-            </Link>
+              <Link
+                href="/field-journal"
+                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                Field Journal
+              </Link>
 
-            <a
-              href={`mailto:${email}`}
-              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-            >
-              Contact
-            </a>
-          </nav>
-        </div>
-      </header>
+              <Link
+                href="/cv"
+                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                CV
+              </Link>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Cover image                                                        */}
-      {/* ------------------------------------------------------------------ */}
-
-      {project.coverImage?.url ? (
-        <section className="relative min-h-[55svh] w-full bg-neutral-100 md:min-h-[60svh]">
-          <Image
-            src={project.coverImage.url}
-            alt={project.coverImage.alt || project.title}
-            fill
-            priority
-            loading="eager"
-            sizes="100vw"
-            placeholder={project.coverImage.lqip ? "blur" : undefined}
-            blurDataURL={project.coverImage.lqip}
-            className="object-cover"
-          />
-        </section>
-      ) : (
-        <section className="min-h-[40svh] bg-neutral-100 md:min-h-[55svh]" />
-      )}
+              <a
+                href={`mailto:${email}`}
+                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+              >
+                Contact
+              </a>
+            </nav>
+          </div>
+        </header>
+      </section>
 
       {/* ------------------------------------------------------------------ */}
       {/* Description and project details                                    */}
