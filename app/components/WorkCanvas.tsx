@@ -646,10 +646,9 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
       return lowestPoint;
     }
 
-    const mobileRow = Math.floor(index / 2);
-    const mobileY = mobileRow * 250;
+    const mobileY = index * 340;
 
-    const cardWidth = canvasMetrics.width * 0.49;
+    const cardWidth = canvasMetrics.width;
 
     const cardHeight = cardWidth / getAspectRatio(project);
 
@@ -1147,13 +1146,9 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
               ? `${project.imageWidth} / ${project.imageHeight}`
               : "4 / 3";
 
-          const mobileColumn = index % 2;
+          const mobileX = 0;
 
-          const mobileRow = Math.floor(index / 2);
-
-          const mobileX = mobileColumn === 0 ? 0 : 51;
-
-          const mobileY = mobileRow * 250;
+          const mobileY = index * 340;
 
           const resolvedDesktopRect = hasMeasuredWidth
             ? getResolvedDesktopRect(
@@ -1183,7 +1178,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
 
             "--mobile-x": `${mobileX}%`,
             "--mobile-y": `${mobileY}px`,
-            "--mobile-width": "49%",
+            "--mobile-width": "100%",
 
             aspectRatio: imageAspectRatio,
 
@@ -1212,7 +1207,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
                   src={project.coverImageUrl}
                   alt={project.coverImageAlt || project.title}
                   fill
-                  sizes="(max-width: 767px) 49vw, 32vw"
+                  sizes="(max-width: 767px) 100vw, 32vw"
                   loading={index < 2 ? "eager" : "lazy"}
                   draggable={false}
                   className={`pointer-events-none object-contain transition-[filter] duration-300 ${
