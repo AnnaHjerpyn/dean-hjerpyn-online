@@ -226,7 +226,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {/* ------------------------------------------------------------------ */}
       <section className="relative w-full bg-white px-4 pt-4 pb-4 md:px-8 md:pt-5 md:pb-10">
         {project.coverImage?.url && (
-          <div className="relative mx-auto aspect-[16/10] w-full max-w-[1600px] overflow-hidden md:aspect-[16/9]">
+          <div className="relative mx-auto aspect-[16/10] w-full max-w-[1400px] overflow-hidden md:aspect-[16/9]">
             <Image
               src={project.coverImage.url}
               alt={project.coverImage.alt || project.title}
