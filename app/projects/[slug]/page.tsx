@@ -290,7 +290,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-x-8">
           {/* Project description */}
 
-          <div className="md:col-span-6 md:col-start-3 lg:col-span-5 lg:col-start-4">
+          <div className="md:col-span-6 md:col-start-2 lg:col-span-5 lg:col-start-3">
             {project.description && project.description.length > 0 ? (
               <div className="font-mabrypro text-[16px] font-normal leading-[1.22] tracking-[-0.018em] md:text-[18px] lg:text-[20px]">
                 <PortableText
@@ -352,7 +352,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           {/* Project metadata */}
 
           {projectDetails.length > 0 && (
-            <aside className="md:col-span-3 md:col-start-10">
+            <aside className="md:col-span-3 md:col-start-9">
               <dl className="grid grid-cols-2 gap-x-7 gap-y-7 font-mabrypro md:grid-cols-1 lg:grid-cols-2">
                 {projectDetails.map((detail) => (
                   <div key={detail.label}>
