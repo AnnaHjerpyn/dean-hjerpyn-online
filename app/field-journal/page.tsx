@@ -1,27 +1,9 @@
 import Link from "next/link";
 import { client } from "@/sanity/lib/client";
-import FieldJournalStack from "./FieldJournalStack";
+import FieldJournalStack, { type FieldJournalEntry } from "./FieldJournalStack";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-type FieldJournalEntry = {
-  _id: string;
-  mediaType?: "image" | "video" | "pdf";
-
-  imageUrl?: string;
-
-  videoUrl?: string;
-  videoMimeType?: string;
-
-  pdfUrl?: string;
-  pdfFilename?: string;
-
-  alt?: string;
-  caption?: string;
-  writing?: string;
-  date?: string;
-};
 
 async function getFieldJournalEntries(): Promise<FieldJournalEntry[]> {
   return client.fetch(

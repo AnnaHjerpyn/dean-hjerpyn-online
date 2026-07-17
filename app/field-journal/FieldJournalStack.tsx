@@ -17,7 +17,7 @@ function sanityImageLoader({ src, width, quality }: ImageLoaderProps): string {
   return url.toString();
 }
 
-type FieldJournalEntry = {
+export type FieldJournalEntry = {
   _id: string;
   mediaType?: "image" | "video" | "pdf";
 
@@ -129,6 +129,16 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
         <span className="h-8 w-px animate-scroll-line bg-black/30" />
       </div>
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
+        {/* Scroll indicator — now inside the sticky viewport-height container */}
+        <div
+          className="pointer-events-none absolute bottom-8 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-300"
+          style={{ opacity: clamp(1 - progress * 4, 0, 1) }}
+        >
+          <span className="font-mabrypro text-[11px] uppercase tracking-[0.14em] text-black/50">
+            Scroll
+          </span>
+          <span className="h-8 w-px animate-scroll-line bg-black/30" />
+        </div>
         <div className="absolute inset-0 flex items-center justify-center px-4 md:px-8">
           <div className="relative h-[84vh] w-full">
             {entries.map((entry, index) => {
