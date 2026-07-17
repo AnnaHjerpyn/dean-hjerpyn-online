@@ -52,6 +52,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Dean";
+  src: url("/fonts/Dean/Dean-Regular.ttf") format("ttf");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* =========================
    VARIABLES
 ========================= */
@@ -63,6 +71,7 @@
   --font-sabon: "Sabon", Georgia, serif;
   --font-narkiss: "narkiss Tam", Arial, sans-serif;
   --font-mabrypro: "Mabry Pro", Arial, sans-serif;
+  --font-dean: "Dean", Arial, sans-serif;
 }
 
 @theme inline {
@@ -73,6 +82,7 @@
   --font-editorial: var(--font-instrument-sans);
   --font-narkiss: var(--font-narkiss);
   --font-mabrypro: var(--font-mabrypro);
+  --font-dean: var(--font-dean);
 }
 
 /* =========================
