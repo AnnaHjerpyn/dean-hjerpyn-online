@@ -289,7 +289,7 @@ function createInitialLayouts(projects: WorkProject[]) {
       y: position.y + group * 900,
       width: position.width,
       visible: true,
-      locked: true,
+      locked: false,
     };
   });
 
@@ -488,7 +488,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
           y: position.y + group * 900,
           width: position.width,
           visible: true,
-          locked: true,
+          locked: false,
         };
       });
 
