@@ -3,6 +3,8 @@
 import Image, { type ImageLoaderProps } from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { PortableText } from "@portabletext/react";
+import type { PortableTextBlock } from "@portabletext/types";
 
 function sanityImageLoader({ src, width, quality }: ImageLoaderProps): string {
   const url = new URL(src);
@@ -29,7 +31,7 @@ type FieldJournalEntry = {
 
   alt?: string;
   caption?: string;
-  writing?: string;
+  writing?: PortableTextBlock[];
   date?: string;
 };
 
@@ -157,19 +159,10 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                   style={style}
                 >
                   {/* Date — left side on desktop */}
-                  <div className="order-2 md:order-1 md:self-center md:text-right">
-                    {entry.date && (
-                      <time
-                        dateTime={entry.date}
-                        className="block text-[10px] uppercase leading-relaxed tracking-[0.12em]"
-                      >
-                        {formatDate(entry.date)}
-                      </time>
-                    )}
-                  </div>
+                  <div className="order-2 md:order-1 md:self-center md:text-right"></div>
 
                   {/* Media */}
-                  <div className="order-1 flex h-[58vh] min-h-0 w-full items-center justify-center md:order-2 md:h-[68vh]">
+                  <div className="order-2 flex h-[58vh] min-h-0 w-full items-center justify-center md:order-2 md:h-[68vh]">
                     {resolvedMediaType === "image" && entry.imageUrl && (
                       <div className="relative h-full w-full">
                         <Image
@@ -215,17 +208,25 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
 
                   {/* Writing — right side on desktop */}
                   <div className="order-3 font-dean md:self-center">
+                    {entry.date && (
+                      <time
+                        dateTime={entry.date}
+                        className="block font-mabrypro text-[12px] uppercase leading-relaxed tracking-[0.12em]"
+                      >
+                        {formatDate(entry.date)}
+                      </time>
+                    )}
                     {entry.caption && (
-                      <h2 className="mb-2 text-[12px] uppercase tracking-[0.12em]">
+                      <h2 className="mb-2 text-[25px] uppercase tracking-[0.12em]">
                         {entry.caption}
                       </h2>
                     )}
 
-                    {entry.writing && (
-                      <p className="whitespace-pre-line text-[14px] leading-[1.5]">
-                        {entry.writing}
-                      </p>
-                    )}
+                    {entry.writing?.length ? (
+                      <div className="text-[35px] leading-relaxed">
+                        <PortableText value={entry.writing} />
+                      </div>
+                    ) : null}
                   </div>
                 </article>
               );
