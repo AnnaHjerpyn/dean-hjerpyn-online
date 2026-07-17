@@ -118,6 +118,16 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
         height: `${entries.length * 100}vh`,
       }}
     >
+      {/* Scroll indicator */}
+      <div
+        className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-300"
+        style={{ opacity: clamp(1 - progress * 4, 0, 1) }}
+      >
+        <span className="font-mabrypro text-[11px] uppercase tracking-[0.14em] text-black/50">
+          Scroll
+        </span>
+        <span className="h-8 w-px animate-scroll-line bg-black/30" />
+      </div>
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
         <div className="absolute inset-0 flex items-center justify-center px-4 md:px-8">
           <div className="relative h-[84vh] w-full">
@@ -130,22 +140,25 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
               }
 
               const delta = index - progress;
-              const isPast = delta < -0.75;
-              const isTooFarAhead = delta > 5;
+              const isPast = delta < -0.9;
 
               const scale =
                 delta < 0 ? 1.08 + Math.abs(delta) * 0.035 : 1 - delta * 0.075;
 
               const y = delta < 0 ? 160 + Math.abs(delta) * 90 : -delta * 40;
 
-              const opacity = isPast || isTooFarAhead ? 0 : 1;
+              // smooth crossfade: only the entry nearest delta=0 is visible,
+              // neighbors fade out within roughly one scroll-step
+              const opacity = isPast
+                ? 0
+                : clamp(1 - Math.abs(delta) * 1.4, 0, 1);
               const zIndex = Math.round(100 - Math.abs(delta) * 10);
 
               const style: CSSProperties = {
                 transform: `translate(-50%, calc(-50% + ${y}px)) scale(${scale})`,
                 zIndex,
                 opacity,
-                pointerEvents: opacity === 0 ? "none" : "auto",
+                pointerEvents: opacity < 0.05 ? "none" : "auto",
               };
 
               const resolvedMediaType =
@@ -160,7 +173,6 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                 >
                   {/* Date — left side on desktop */}
                   <div className="order-2 md:order-1 md:self-center md:text-right"></div>
-
                   {/* Media */}
                   <div className="order-2 flex h-[58vh] min-h-0 w-full items-center justify-center md:order-2 md:h-[68vh]">
                     {resolvedMediaType === "image" && entry.imageUrl && (
@@ -205,26 +217,44 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                       </div>
                     )}
                   </div>
-
                   {/* Writing — right side on desktop */}
                   <div className="order-3 font-dean md:self-center">
                     {entry.date && (
                       <time
                         dateTime={entry.date}
-                        className="block font-mabrypro text-[12px] uppercase leading-relaxed tracking-[0.12em]"
+                        className="block font-mabrypro text-[11px] uppercase leading-relaxed tracking-[0.14em] text-black/60"
                       >
                         {formatDate(entry.date)}
                       </time>
                     )}
                     {entry.caption && (
-                      <h2 className="mb-2 text-[25px] uppercase tracking-[0.12em]">
+                      <h2 className="mb-3 mt-1 text-[22px] uppercase leading-tight tracking-[0.1em]">
                         {entry.caption}
                       </h2>
                     )}
 
                     {entry.writing?.length ? (
-                      <div className="text-[35px] leading-relaxed">
-                        <PortableText value={entry.writing} />
+                      <div className="max-w-[46ch] text-[17px] leading-[1.7] text-black/85">
+                        <PortableText
+                          value={entry.writing}
+                          components={{
+                            block: {
+                              normal: ({ children }) => (
+                                <p className="mb-4 last:mb-0">{children}</p>
+                              ),
+                            },
+                            marks: {
+                              em: ({ children }) => (
+                                <em className="italic">{children}</em>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold">
+                                  {children}
+                                </strong>
+                              ),
+                            },
+                          }}
+                        />
                       </div>
                     ) : null}
                   </div>
