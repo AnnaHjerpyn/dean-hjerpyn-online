@@ -1024,7 +1024,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
         ref={asideRef}
         className="relative z-20 mb-10 w-full bg-white md:absolute md:right-[3.5%] md:top-16 md:mb-0 md:w-[34%] md:max-w-[540px] md:px-5 md:py-4"
       >
-        <h1 className="mb-3 mt-10 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-semibold leading-none tracking-[-0.035em] md:mt-0">
+        <h1 className="mb-3 mt-10 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-normal leading-none tracking-[-0.035em] md:mt-0">
           Selected Works
         </h1>
 
