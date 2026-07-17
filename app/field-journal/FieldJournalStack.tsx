@@ -1,6 +1,8 @@
 "use client";
 
 import Image, { type ImageLoaderProps } from "next/image";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 
 function sanityImageLoader({ src, width, quality }: ImageLoaderProps): string {
   const url = new URL(src);
@@ -12,9 +14,6 @@ function sanityImageLoader({ src, width, quality }: ImageLoaderProps): string {
 
   return url.toString();
 }
-
-import { useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
 
 type FieldJournalEntry = {
   _id: string;
@@ -30,6 +29,7 @@ type FieldJournalEntry = {
 
   alt?: string;
   caption?: string;
+  writing?: string;
   date?: string;
 };
 
@@ -39,6 +39,19 @@ type FieldJournalStackProps = {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function formatDate(date?: string) {
+  if (!date) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00Z`));
 }
 
 export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
@@ -104,8 +117,8 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
       }}
     >
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
-        <div className="absolute inset-0 flex items-center justify-center px-4">
-          <div className="relative h-[80vh] w-full">
+        <div className="absolute inset-0 flex items-center justify-center px-4 md:px-8">
+          <div className="relative h-[84vh] w-full">
             {entries.map((entry, index) => {
               const shouldRender =
                 index >= activeIndex - 1 && index <= activeIndex + 3;
@@ -133,10 +146,6 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                 pointerEvents: opacity === 0 ? "none" : "auto",
               };
 
-              /*
-               * Existing entries without mediaType are treated as images.
-               * The URL checks also provide a fallback if mediaType is missing.
-               */
               const resolvedMediaType =
                 entry.mediaType ||
                 (entry.videoUrl ? "video" : entry.pdfUrl ? "pdf" : "image");
@@ -144,55 +153,80 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
               return (
                 <article
                   key={entry._id}
-                  className="absolute left-1/2 top-1/2 flex w-[78vw] max-w-[860px] justify-center transition-[transform,opacity] duration-500 ease-out md:w-[64vw]"
+                  className="absolute left-1/2 top-1/2 grid w-[92vw] max-w-[1280px] grid-cols-1 items-center gap-4 transition-[transform,opacity] duration-500 ease-out md:grid-cols-[150px_minmax(0,760px)_220px] md:gap-8"
                   style={style}
                 >
-                  {/* Image */}
-                  {resolvedMediaType === "image" && entry.imageUrl && (
-                    <div className="relative mx-auto h-[65vh] w-full max-w-[760px]">
-                      <Image
-                        loader={sanityImageLoader}
-                        src={entry.imageUrl}
-                        alt={
-                          entry.alt || entry.caption || "Field journal image"
-                        }
-                        fill
-                        sizes="(max-width: 768px) 90vw, 58vw"
-                        className="object-contain"
-                      />
-                    </div>
-                  )}
+                  {/* Date — left side on desktop */}
+                  <div className="order-2 md:order-1 md:self-center md:text-right">
+                    {entry.date && (
+                      <time
+                        dateTime={entry.date}
+                        className="block text-[10px] uppercase leading-relaxed tracking-[0.12em]"
+                      >
+                        {formatDate(entry.date)}
+                      </time>
+                    )}
+                  </div>
 
-                  {/* Video */}
-                  {resolvedMediaType === "video" && entry.videoUrl && (
-                    <div className="flex h-[65vh] w-full max-w-[760px] items-center justify-center">
+                  {/* Media */}
+                  <div className="order-1 flex h-[58vh] min-h-0 w-full items-center justify-center md:order-2 md:h-[68vh]">
+                    {resolvedMediaType === "image" && entry.imageUrl && (
+                      <div className="relative h-full w-full">
+                        <Image
+                          loader={sanityImageLoader}
+                          src={entry.imageUrl}
+                          alt={
+                            entry.alt || entry.caption || "Field journal image"
+                          }
+                          fill
+                          sizes="(max-width: 768px) 92vw, 60vw"
+                          className="object-contain"
+                        />
+                      </div>
+                    )}
+
+                    {resolvedMediaType === "video" && entry.videoUrl && (
                       <video
                         src={entry.videoUrl}
                         autoPlay
                         muted
                         loop
                         playsInline
-                        preload="auto"
-                        className="pointer-events-none block h-auto w-full object-cover"
+                        preload="metadata"
+                        className="block max-h-full max-w-full object-contain"
                       >
                         Your browser does not support video playback.
                       </video>
-                    </div>
-                  )}
+                    )}
 
-                  {/* PDF */}
-                  {resolvedMediaType === "pdf" && entry.pdfUrl && (
-                    <div className="flex h-[65vh] w-full max-w-[760px] items-center justify-center border border-black bg-white p-8">
-                      <a
-                        href={entry.pdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
-                      >
-                        Open {entry.pdfFilename || "PDF"}
-                      </a>
-                    </div>
-                  )}
+                    {resolvedMediaType === "pdf" && entry.pdfUrl && (
+                      <div className="flex h-full w-full items-center justify-center border border-black bg-white p-8">
+                        <a
+                          href={entry.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
+                        >
+                          Open {entry.pdfFilename || "PDF"}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Writing — right side on desktop */}
+                  <div className="order-3 font-dean md:self-center">
+                    {entry.caption && (
+                      <h2 className="mb-2 text-[12px] uppercase tracking-[0.12em]">
+                        {entry.caption}
+                      </h2>
+                    )}
+
+                    {entry.writing && (
+                      <p className="whitespace-pre-line text-[14px] leading-[1.5]">
+                        {entry.writing}
+                      </p>
+                    )}
+                  </div>
                 </article>
               );
             })}

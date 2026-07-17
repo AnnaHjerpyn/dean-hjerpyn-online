@@ -8,11 +8,18 @@ export const revalidate = 0;
 type FieldJournalEntry = {
   _id: string;
   mediaType?: "image" | "video" | "pdf";
+
   imageUrl?: string;
+
   videoUrl?: string;
+  videoMimeType?: string;
+
   pdfUrl?: string;
+  pdfFilename?: string;
+
   alt?: string;
   caption?: string;
+  writing?: string;
   date?: string;
 };
 
@@ -24,10 +31,13 @@ async function getFieldJournalEntries(): Promise<FieldJournalEntry[]> {
         mediaType,
         alt,
         caption,
+        writing,
         date,
         "imageUrl": image.asset->url,
         "videoUrl": video.asset->url,
-        "pdfUrl": pdf.asset->url
+        "videoMimeType": video.asset->mimeType,
+        "pdfUrl": pdf.asset->url,
+        "pdfFilename": pdf.asset->originalFilename
       }
     `,
     {},
@@ -59,7 +69,10 @@ export default async function FieldJournalPage() {
         </Link>
 
         {/* Navigation */}
-        <nav className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]">
+        <nav
+          aria-label="Primary navigation"
+          className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]"
+        >
           <Link
             href="/work"
             className="transition-opacity duration-200 hover:opacity-40"
@@ -69,6 +82,7 @@ export default async function FieldJournalPage() {
 
           <Link
             href="/field-journal"
+            aria-current="page"
             className="transition-opacity duration-200 hover:opacity-40"
           >
             Field Journal
