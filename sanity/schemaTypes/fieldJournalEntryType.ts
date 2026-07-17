@@ -1,6 +1,6 @@
 // sanity/schemaTypes/fieldJournalEntryType.ts
 
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 
 export const fieldJournalEntryType = defineType({
   name: "fieldJournalEntry",
@@ -13,25 +13,14 @@ export const fieldJournalEntryType = defineType({
       title: "Media Type",
       type: "string",
       initialValue: "image",
-
       options: {
         layout: "radio",
         list: [
-          {
-            title: "Image",
-            value: "image",
-          },
-          {
-            title: "Video",
-            value: "video",
-          },
-          {
-            title: "PDF",
-            value: "pdf",
-          },
+          { title: "Image", value: "image" },
+          { title: "Video", value: "video" },
+          { title: "PDF", value: "pdf" },
         ],
       },
-
       validation: (Rule) => Rule.required(),
     }),
 
@@ -39,19 +28,16 @@ export const fieldJournalEntryType = defineType({
       name: "image",
       title: "Image",
       type: "image",
-
       options: {
         hotspot: true,
       },
-
       hidden: ({ document }) =>
         Boolean(document?.mediaType && document.mediaType !== "image"),
-
       validation: (Rule) =>
         Rule.custom((image, context) => {
           const mediaType = context.document?.mediaType;
 
-          // Existing entries without mediaType are treated as images.
+          // Older entries without mediaType are treated as images.
           if (!mediaType || mediaType === "image") {
             return image ? true : "An image is required.";
           }
@@ -64,13 +50,10 @@ export const fieldJournalEntryType = defineType({
       name: "video",
       title: "Video",
       type: "file",
-
       options: {
         accept: "video/mp4,video/webm,video/quicktime",
       },
-
       hidden: ({ document }) => document?.mediaType !== "video",
-
       validation: (Rule) =>
         Rule.custom((video, context) => {
           if (context.document?.mediaType === "video") {
@@ -85,13 +68,10 @@ export const fieldJournalEntryType = defineType({
       name: "pdf",
       title: "PDF",
       type: "file",
-
       options: {
         accept: "application/pdf",
       },
-
       hidden: ({ document }) => document?.mediaType !== "pdf",
-
       validation: (Rule) =>
         Rule.custom((pdf, context) => {
           if (context.document?.mediaType === "pdf") {
@@ -107,15 +87,26 @@ export const fieldJournalEntryType = defineType({
       title: "Alt Text",
       description: "Describe the image for accessibility.",
       type: "string",
-
       hidden: ({ document }) =>
         Boolean(document?.mediaType && document.mediaType !== "image"),
     }),
 
     defineField({
       name: "caption",
-      title: "Caption / Notes",
-      type: "text",
+      title: "Caption",
+      description: "A short caption displayed with the media.",
+      type: "string",
+    }),
+
+    defineField({
+      name: "writing",
+      title: "Journal Writing",
+      type: "array" as const,
+      of: [
+        defineArrayMember({
+          type: "block",
+        }),
+      ],
     }),
 
     defineField({
