@@ -1043,7 +1043,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
             return (
               <div
                 key={project._id}
-                className={`flex min-w-0 items-start gap-2 py-[3px] font-mabrypro text-[clamp(18px,1.75vw,30px)] font-semibold leading-[1.08] tracking-[-0.025em] ${
+                className={`flex min-w-0 items-start gap-2 py-[3px] font-mabrypro text-[clamp(18px,1.75vw,30px)] font-normal leading-[1.08] tracking-[-0.025em] ${
                   hasImage ? "" : "opacity-35"
                 }`}
               >
