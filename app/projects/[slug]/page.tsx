@@ -5,6 +5,7 @@ import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
 import { client } from "@/sanity/lib/client";
 import ExpandableImage from "@/app/components/ExpandableImage";
+import CoverImageSelection from "@/app/components/CoverImageSelection";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -226,19 +227,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {/* ------------------------------------------------------------------ */}
       <section className="relative w-full bg-white px-4 pt-4 pb-4 md:px-8 md:pt-5 md:pb-10">
         {project.coverImage?.url && (
-          <div className="relative mx-auto aspect-[16/10] w-full max-w-[800px] overflow-hidden md:aspect-[16/9]">
-            <Image
-              src={project.coverImage.url}
-              alt={project.coverImage.alt || project.title}
-              fill
-              priority
-              loading="eager"
-              sizes="100vw"
-              placeholder={project.coverImage.lqip ? "blur" : undefined}
-              blurDataURL={project.coverImage.lqip}
-              className="object-cover"
-            />
-          </div>
+          <CoverImageSelection
+            src={project.coverImage.url}
+            alt={project.coverImage.alt || project.title}
+            lqip={project.coverImage.lqip}
+          />
         )}
 
         <header className="fixed inset-x-0 top-0 z-30 text-white mix-blend-exclusion">
