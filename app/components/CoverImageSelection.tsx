@@ -32,11 +32,10 @@ export default function CoverImageSelection({
           alt={alt}
           fill
           priority
-          loading="eager"
-          sizes="100vw"
+          sizes="(min-width: 768px) 800px, 100vw"
           placeholder={lqip ? "blur" : undefined}
           blurDataURL={lqip}
-          className="object-cover"
+          className="object-contain"
         />
       </div>
 
