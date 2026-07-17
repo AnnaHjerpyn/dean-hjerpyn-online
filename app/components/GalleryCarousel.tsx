@@ -38,7 +38,7 @@ type GalleryCarouselProps = {
 export default function GalleryCarousel({
   items,
   projectTitle,
-  intervalMs = 4500,
+  intervalMs = 2000,
 }: GalleryCarouselProps) {
   const total = items.length;
 
