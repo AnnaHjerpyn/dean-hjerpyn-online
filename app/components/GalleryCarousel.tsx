@@ -323,8 +323,10 @@ export default function GalleryCarousel({
                   event.stopPropagation();
                   goPrev();
                 }}
-                className="fixed bottom-0 left-0 top-0 z-[110] w-[16%] cursor-w-resize focus-visible:outline focus-visible:outline-1 focus-visible:outline-black"
-              />
+                className="fixed left-2 top-1/2 z-[120] flex h-12 w-12 -translate-y-1/2 items-center justify-center font-mabrypro text-[28px] font-light leading-none text-black transition-opacity hover:opacity-40 focus-visible:outline focus-visible:outline-1 focus-visible:outline-black md:left-6"
+              >
+                ‹
+              </button>
 
               <button
                 type="button"
@@ -333,8 +335,10 @@ export default function GalleryCarousel({
                   event.stopPropagation();
                   goNext();
                 }}
-                className="fixed bottom-0 right-0 top-0 z-[110] w-[16%] cursor-e-resize focus-visible:outline focus-visible:outline-1 focus-visible:outline-black"
-              />
+                className="fixed right-2 top-1/2 z-[120] flex h-12 w-12 -translate-y-1/2 items-center justify-center font-mabrypro text-[28px] font-light leading-none text-black transition-opacity hover:opacity-40 focus-visible:outline focus-visible:outline-1 focus-visible:outline-black md:right-6"
+              >
+                ›
+              </button>
 
               <div className="fixed bottom-4 left-1/2 z-[120] -translate-x-1/2 font-mabrypro text-[9px] uppercase tracking-[0.06em] text-neutral-500 md:bottom-7 md:text-[10px]">
                 {currentIndex + 1} / {total}
