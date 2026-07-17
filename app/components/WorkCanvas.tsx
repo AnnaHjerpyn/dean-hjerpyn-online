@@ -120,50 +120,51 @@ const MAX_IMAGE_WIDTH_PERCENT = 65;
   x and width are percentages of the image canvas.
   y is measured in pixels.
 
-  Increase width to make an image larger.
-  Decrease y to move an image higher.
+  Two-column layout: column A (x:2) and column B (x:35), each ~28-32% wide,
+  with a gap between columns and generous vertical spacing within each
+  column so images don't overlap.
 */
 const STARTING_POSITIONS = [
   {
-    x: 3,
-    y: 105,
-    width: 31,
+    x: 2,
+    y: 150,
+    width: 30,
     zIndex: 1,
   },
   {
-    x: 2,
-    y: 640,
-    width: 38,
+    x: 36,
+    y: 2,
+    width: 30,
     zIndex: 2,
   },
   {
-    x: 30,
-    y: 145,
-    width: 32,
+    x: 2,
+    y: 610,
+    width: 30,
     zIndex: 3,
   },
   {
-    x: 4,
-    y: 405,
-    width: 33,
+    x: 33,
+    y: 800,
+    width: 28,
     zIndex: 4,
   },
   {
-    x: 24,
-    y: 395,
-    width: 38,
+    x: 32,
+    y: 360,
+    width: 28,
     zIndex: 5,
   },
   {
-    x: 37,
-    y: 315,
-    width: 31,
+    x: 65,
+    y: 550,
+    width: 30,
     zIndex: 8,
   },
   {
-    x: 39,
-    y: 585,
-    width: 38,
+    x: 0,
+    y: 980,
+    width: 30,
     zIndex: 6,
   },
 ];
@@ -1023,7 +1024,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
         ref={asideRef}
         className="relative z-20 mb-10 w-full bg-white md:absolute md:right-[3.5%] md:top-16 md:mb-0 md:w-[34%] md:max-w-[540px] md:px-5 md:py-4"
       >
-        <h1 className="mb-3 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-semibold leading-none tracking-[-0.035em]">
+        <h1 className="mb-3 mt-10 font-mabrypro text-[clamp(25px,2.3vw,39px)] font-semibold leading-none tracking-[-0.035em] md:mt-0">
           Selected Works
         </h1>
 
