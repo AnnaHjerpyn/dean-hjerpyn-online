@@ -9,6 +9,8 @@ type GalleryImage = {
   url: string;
   alt?: string;
   caption?: string;
+  width?: number;
+  height?: number;
   lqip?: string;
 };
 
@@ -32,319 +34,637 @@ type GalleryItem = GalleryImage | GalleryVideo | GalleryPdf;
 type GalleryCarouselProps = {
   items: GalleryItem[];
   projectTitle: string;
-  intervalMs?: number;
 };
+
+const AUTOPLAY_DELAY = 6000;
+
+/* -------------------------------------------------------------------------- */
+/* Icons                                                                      */
+/* -------------------------------------------------------------------------- */
+
+function PreviousIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="none">
+      <path
+        d="M15 5L8 12L15 19"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function NextIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="none">
+      <path
+        d="M9 5L16 12L9 19"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="none">
+      <path
+        d="M6 6L18 18M18 6L6 18"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true" fill="none">
+      <path
+        d="M12 3V15M7.5 10.5L12 15L16.5 10.5"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M5 16V20H19V16"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Video                                                                      */
+/* -------------------------------------------------------------------------- */
+
+type CarouselVideoProps = {
+  item: GalleryVideo;
+  isActive: boolean;
+  onPlaybackChange: (paused: boolean) => void;
+};
+
+function CarouselVideo({
+  item,
+  isActive,
+  onPlaybackChange,
+}: CarouselVideoProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    if (!isActive) {
+      video.pause();
+      video.currentTime = 0;
+      setIsPaused(false);
+      return;
+    }
+
+    video.currentTime = 0;
+
+    const playPromise = video.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPaused(false);
+          onPlaybackChange(false);
+        })
+        .catch(() => {
+          setIsPaused(true);
+          onPlaybackChange(true);
+        });
+    }
+  }, [isActive, onPlaybackChange]);
+
+  const togglePlayback = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+
+      const video = videoRef.current;
+
+      if (!video) {
+        return;
+      }
+
+      if (video.paused) {
+        video
+          .play()
+          .then(() => {
+            setIsPaused(false);
+            onPlaybackChange(false);
+          })
+          .catch(() => {
+            setIsPaused(true);
+            onPlaybackChange(true);
+          });
+      } else {
+        video.pause();
+        setIsPaused(true);
+        onPlaybackChange(true);
+      }
+    },
+    [onPlaybackChange]
+  );
+
+  return (
+    <figure className="flex h-full w-full flex-col">
+      <button
+        type="button"
+        onClick={togglePlayback}
+        aria-label={isPaused ? "Play video" : "Pause video"}
+        className="group relative flex min-h-0 flex-1 cursor-pointer items-center justify-center overflow-hidden bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+      >
+        <video
+          ref={videoRef}
+          src={item.url}
+          muted
+          playsInline
+          loop
+          preload="auto"
+          controls={false}
+          disablePictureInPicture
+          className="h-full w-full object-contain object-center"
+          onPlay={() => {
+            setIsPaused(false);
+            onPlaybackChange(false);
+          }}
+          onPause={() => {
+            if (isActive) {
+              setIsPaused(true);
+            }
+          }}
+        />
+
+        <span
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${
+            isPaused ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <span className="flex h-14 w-14 items-center justify-center rounded-full border border-white/60 bg-black/20 text-white backdrop-blur-sm">
+            <span className="ml-1 block h-0 w-0 border-y-[8px] border-l-[13px] border-y-transparent border-l-white" />
+          </span>
+        </span>
+      </button>
+
+      {item.caption && (
+        <figcaption className="pt-2 font-mabrypro text-[10px] leading-[1.25] text-black md:text-[11px]">
+          {item.caption}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Carousel                                                                   */
+/* -------------------------------------------------------------------------- */
 
 export default function GalleryCarousel({
   items,
   projectTitle,
-  intervalMs = 2000,
 }: GalleryCarouselProps) {
-  const total = items.length;
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showControls, setShowControls] = useState(false);
+  const [isVideoPaused, setIsVideoPaused] = useState(false);
 
   const touchStartX = useRef<number | null>(null);
 
-  const goTo = useCallback(
-    (index: number) => {
-      if (total === 0) return;
+  const itemCount = items.length;
+  const activeItem = items[activeIndex];
 
-      setCurrentIndex(((index % total) + total) % total);
-    },
-    [total]
-  );
-
-  const goNext = useCallback(() => {
-    setCurrentIndex((previous) => (total > 0 ? (previous + 1) % total : 0));
-  }, [total]);
-
-  const goPrev = useCallback(() => {
-    setCurrentIndex((previous) =>
-      total > 0 ? (previous - 1 + total) % total : 0
-    );
-  }, [total]);
-
-  /*
-   * Keep the current index valid if the gallery contents change.
-   */
-  useEffect(() => {
-    if (total === 0) {
-      setCurrentIndex(0);
-      return;
+  const imageIndexes = items.reduce<number[]>((indexes, item, index) => {
+    if (item._type === "image") {
+      indexes.push(index);
     }
 
-    setCurrentIndex((previous) => Math.min(previous, total - 1));
-  }, [total]);
+    return indexes;
+  }, []);
 
-  /*
-   * Autoplay.
-   *
-   * Pauses while:
-   * - The pointer is over the carousel
-   * - A carousel control is focused
-   * - The lightbox is open
-   */
-  useEffect(() => {
-    if (total <= 1 || isPaused || isLightboxOpen || intervalMs <= 0) {
-      return;
-    }
+  const goToPrevious = useCallback(() => {
+    setActiveIndex((current) => (current === 0 ? itemCount - 1 : current - 1));
 
-    const timer = window.setInterval(() => {
-      setCurrentIndex((previous) => (previous + 1) % total);
-    }, intervalMs);
+    setIsVideoPaused(false);
+  }, [itemCount]);
 
-    return () => window.clearInterval(timer);
-  }, [total, intervalMs, isPaused, isLightboxOpen]);
+  const goToNext = useCallback(() => {
+    setActiveIndex((current) => (current === itemCount - 1 ? 0 : current + 1));
 
-  /*
-   * Lightbox keyboard navigation and body scroll lock.
-   */
-  useEffect(() => {
-    if (!isLightboxOpen) return;
+    setIsVideoPaused(false);
+  }, [itemCount]);
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+  const goToSlide = useCallback((index: number) => {
+    setActiveIndex(index);
+    setIsVideoPaused(false);
+  }, []);
 
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsLightboxOpen(false);
+  const closeLightbox = useCallback(() => {
+    setLightboxIndex(null);
+    setShowControls(false);
+  }, []);
+
+  const goToPreviousLightboxImage = useCallback(() => {
+    setLightboxIndex((current) => {
+      if (current === null || imageIndexes.length === 0) {
+        return null;
       }
 
-      if (event.key === "ArrowRight") {
-        goNext();
+      const position = imageIndexes.indexOf(current);
+
+      const previousPosition =
+        position <= 0 ? imageIndexes.length - 1 : position - 1;
+
+      return imageIndexes[previousPosition];
+    });
+  }, [imageIndexes]);
+
+  const goToNextLightboxImage = useCallback(() => {
+    setLightboxIndex((current) => {
+      if (current === null || imageIndexes.length === 0) {
+        return null;
+      }
+
+      const position = imageIndexes.indexOf(current);
+
+      const nextPosition =
+        position === imageIndexes.length - 1 ? 0 : position + 1;
+
+      return imageIndexes[nextPosition];
+    });
+  }, [imageIndexes]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Autoplay                                                                 */
+  /* ------------------------------------------------------------------------ */
+
+  useEffect(() => {
+    if (itemCount <= 1 || lightboxIndex !== null || isVideoPaused) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      goToNext();
+    }, AUTOPLAY_DELAY);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [activeIndex, itemCount, lightboxIndex, isVideoPaused, goToNext]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Keyboard controls                                                        */
+  /* ------------------------------------------------------------------------ */
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (lightboxIndex !== null) {
+        if (event.key === "Escape") {
+          closeLightbox();
+        }
+
+        if (event.key === "ArrowLeft") {
+          goToPreviousLightboxImage();
+        }
+
+        if (event.key === "ArrowRight") {
+          goToNextLightboxImage();
+        }
+
+        return;
       }
 
       if (event.key === "ArrowLeft") {
-        goPrev();
+        setShowControls(true);
+        goToPrevious();
+      }
+
+      if (event.key === "ArrowRight") {
+        setShowControls(true);
+        goToNext();
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isLightboxOpen, goNext, goPrev]);
+  }, [
+    lightboxIndex,
+    goToPrevious,
+    goToNext,
+    goToPreviousLightboxImage,
+    goToNextLightboxImage,
+    closeLightbox,
+  ]);
 
-  function handleTouchStart(event: React.TouchEvent) {
-    touchStartX.current = event.touches[0]?.clientX ?? null;
-  }
+  /* ------------------------------------------------------------------------ */
+  /* Lock page while lightbox is open                                         */
+  /* ------------------------------------------------------------------------ */
 
-  function handleTouchEnd(event: React.TouchEvent) {
-    if (touchStartX.current === null) return;
-
-    const endX = event.changedTouches[0]?.clientX;
-
-    if (endX === undefined) return;
-
-    const distance = endX - touchStartX.current;
-
-    if (distance > 50) {
-      goPrev();
+  useEffect(() => {
+    if (lightboxIndex === null) {
+      return;
     }
 
-    if (distance < -50) {
-      goNext();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [lightboxIndex]);
+
+  /* ------------------------------------------------------------------------ */
+  /* Touch swipe                                                              */
+  /* ------------------------------------------------------------------------ */
+
+  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    touchStartX.current = event.touches[0].clientX;
+    setShowControls(true);
+  }
+
+  function handleTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+    if (touchStartX.current === null) {
+      return;
+    }
+
+    const difference = touchStartX.current - event.changedTouches[0].clientX;
+
+    if (Math.abs(difference) > 50) {
+      if (difference > 0) {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
     }
 
     touchStartX.current = null;
   }
 
-  if (total === 0) {
+  if (itemCount === 0 || !activeItem) {
     return null;
   }
 
-  const currentItem = items[currentIndex];
+  const lightboxItem = lightboxIndex !== null ? items[lightboxIndex] : null;
 
-  function renderSlide(item: GalleryItem, isLightbox = false) {
-    if (item._type === "image") {
-      return (
-        <Image
-          src={item.url}
-          alt={item.alt || `${projectTitle} project image`}
-          fill
-          sizes="100vw"
-          placeholder={item.lqip ? "blur" : undefined}
-          blurDataURL={item.lqip}
-          priority={!isLightbox && currentIndex === 0}
-          className="object-contain"
-        />
-      );
-    }
-
-    if (item._type === "video") {
-      return (
-        <video
-          src={item.url}
-          controls
-          playsInline
-          preload="metadata"
-          className="h-full w-full object-contain"
-        />
-      );
-    }
-
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <a
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mabrypro text-[10px] uppercase tracking-[0.06em] underline underline-offset-4 transition-opacity hover:opacity-40"
-        >
-          {item.title || item.filename || "View document"}
-        </a>
-      </div>
-    );
-  }
+  const lightboxPosition =
+    lightboxIndex !== null ? imageIndexes.indexOf(lightboxIndex) : -1;
 
   return (
     <>
-      <section
-        aria-label={`${projectTitle} gallery`}
-        className="mx-auto w-full px-4 pb-8 md:px-8 md:pb-12"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onFocusCapture={() => setIsPaused(true)}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) {
-            setIsPaused(false);
-          }
-        }}
+      <div
+        className="relative w-full"
+        onClick={() => setShowControls(true)}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <div className="relative mx-auto h-[68svh] min-h-[420px] w-full max-w-[1600px] md:h-[76svh]">
-          {items.map((item, index) => (
+        {/* Main media */}
+        <div className="relative h-[55vh] min-h-[360px] max-h-[850px] w-full overflow-hidden bg-white md:h-[75vh] md:min-h-[540px]">
+          {items.map((item, index) => {
+            const isActive = index === activeIndex;
+
+            return (
+              <div
+                key={item._key}
+                aria-hidden={!isActive}
+                className={`absolute inset-0 transition-opacity duration-500 ease-out ${
+                  isActive
+                    ? "z-10 opacity-100"
+                    : "pointer-events-none z-0 opacity-0"
+                }`}
+              >
+                {/* Image */}
+                {item._type === "image" && (
+                  <figure className="flex h-full w-full flex-col">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setLightboxIndex(index);
+                      }}
+                      aria-label={`Enlarge ${
+                        item.alt || `${projectTitle} project image ${index + 1}`
+                      }`}
+                      className="relative min-h-0 flex-1 cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+                    >
+                      <Image
+                        src={item.url}
+                        alt={
+                          item.alt ||
+                          `${projectTitle} project image ${index + 1}`
+                        }
+                        fill
+                        sizes="100vw"
+                        priority={index === 0}
+                        placeholder={item.lqip ? "blur" : "empty"}
+                        blurDataURL={item.lqip}
+                        className="object-contain object-center"
+                      />
+                    </button>
+
+                    {item.caption && (
+                      <figcaption className="pt-2 font-mabrypro text-[10px] leading-[1.25] text-black md:text-[11px]">
+                        {item.caption}
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
+
+                {/* Video */}
+                {item._type === "video" && (
+                  <CarouselVideo
+                    item={item}
+                    isActive={isActive}
+                    onPlaybackChange={setIsVideoPaused}
+                  />
+                )}
+
+                {/* PDF */}
+                {item._type === "pdf" && (
+                  <div className="flex h-full w-full items-center justify-center bg-[#f3f3f1] px-6">
+                    <div className="flex max-w-md flex-col items-center text-center">
+                      <p className="font-mabrypro text-[18px] leading-tight tracking-[-0.025em] md:text-[24px]">
+                        {item.title || item.filename || "Project document"}
+                      </p>
+
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label={`Open ${
+                          item.title || item.filename || "project document"
+                        }`}
+                        className="mt-6 flex h-11 w-11 items-center justify-center rounded-full border border-black/20 transition-colors hover:bg-black hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+                      >
+                        <DownloadIcon />
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Controls */}
+          {itemCount > 1 && (
             <div
-              key={item._key}
-              aria-hidden={index !== currentIndex}
-              className={`absolute inset-0 transition-opacity duration-500 ease-out ${
-                index === currentIndex
-                  ? "z-10 opacity-100"
-                  : "pointer-events-none z-0 opacity-0"
+              className={`transition-opacity duration-300 ${
+                showControls
+                  ? "pointer-events-auto opacity-100"
+                  : "pointer-events-none opacity-0"
               }`}
             >
-              {renderSlide(item)}
-            </div>
-          ))}
-
-          {currentItem._type === "image" && (
-            <button
-              type="button"
-              aria-label={`Open expanded view of ${
-                currentItem.alt || projectTitle
-              }`}
-              onClick={() => setIsLightboxOpen(true)}
-              className="absolute inset-0 z-20 cursor-zoom-in focus-visible:outline focus-visible:outline-1 focus-visible:outline-black"
-            />
-          )}
-
-          {total > 1 && (
-            <>
               <button
                 type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  goToPrevious();
+                }}
                 aria-label="Previous gallery item"
-                onClick={goPrev}
-                className="absolute bottom-0 left-0 top-0 z-30 w-[18%] cursor-w-resize focus-visible:outline focus-visible:outline-1 focus-visible:outline-black"
-              />
+                className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-black/15 bg-white/85 text-black backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:left-5"
+              >
+                <PreviousIcon />
+              </button>
 
               <button
                 type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  goToNext();
+                }}
                 aria-label="Next gallery item"
-                onClick={goNext}
-                className="absolute bottom-0 right-0 top-0 z-30 w-[18%] cursor-e-resize focus-visible:outline focus-visible:outline-1 focus-visible:outline-black"
-              />
-            </>
-          )}
-        </div>
-
-        <div className="mx-auto mt-3 flex w-full max-w-[1600px] items-start justify-between gap-6 font-mabrypro text-[9px] uppercase tracking-[0.05em] md:text-[10px]">
-          <div className="min-h-4 max-w-[70%] text-neutral-500">
-            {currentItem._type !== "pdf" && currentItem.caption
-              ? currentItem.caption
-              : ""}
-          </div>
-
-          {total > 1 && (
-            <div
-              className="shrink-0 tabular-nums text-neutral-500"
-              aria-live="polite"
-            >
-              {currentIndex + 1} / {total}
+                className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-black/15 bg-white/85 text-black backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:right-5"
+              >
+                <NextIcon />
+              </button>
             </div>
           )}
         </div>
-      </section>
 
-      {isLightboxOpen && currentItem._type === "image" && (
+        {/* Minimal count and indicators */}
+        {itemCount > 1 && (
+          <div
+            className={`mt-3 flex items-center justify-between font-mabrypro text-[9px] uppercase tracking-[0.06em] transition-opacity duration-300 md:text-[10px] ${
+              showControls
+                ? "pointer-events-auto opacity-100"
+                : "pointer-events-none opacity-0"
+            }`}
+          >
+            <span>
+              {String(activeIndex + 1).padStart(2, "0")} /{" "}
+              {String(itemCount).padStart(2, "0")}
+            </span>
+
+            <div
+              className="flex items-center gap-2"
+              aria-label="Choose gallery item"
+            >
+              {items.map((item, index) => (
+                <button
+                  key={item._key}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    goToSlide(index);
+                  }}
+                  aria-label={`Go to gallery item ${index + 1}`}
+                  aria-current={index === activeIndex ? "true" : undefined}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    index === activeIndex
+                      ? "w-6 bg-black"
+                      : "w-1 bg-black/25 hover:bg-black/50"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Image lightbox                                                     */}
+      {/* ------------------------------------------------------------------ */}
+
+      {lightboxItem && lightboxItem._type === "image" && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`Expanded view of ${currentItem.alt || projectTitle}`}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-white/95 p-4 md:p-8"
-          onClick={() => setIsLightboxOpen(false)}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
+          aria-label="Enlarged project image"
+          className="fixed inset-0 z-[100] bg-[#f5f5f2]/98 text-black"
         >
           <button
             type="button"
-            aria-label="Close expanded image"
-            onClick={() => setIsLightboxOpen(false)}
-            className="fixed right-4 top-4 z-[120] font-mabrypro text-[10px] uppercase tracking-[0.06em] text-black transition-opacity hover:opacity-40 md:right-8 md:top-7"
+            onClick={closeLightbox}
+            aria-label="Close enlarged image"
+            className="absolute right-4 top-4 z-30 flex h-10 w-10 items-center justify-center rounded-full border border-black/15 bg-white/85 backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:right-6 md:top-6"
           >
-            Close
+            <CloseIcon />
           </button>
 
-          <div
-            className="relative h-[calc(100svh-5rem)] w-full max-w-[1600px]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <Image
-              src={currentItem.url}
-              alt={currentItem.alt || `${projectTitle} project image`}
-              fill
-              sizes="100vw"
-              priority
-              className="object-contain"
-            />
+          <div className="relative flex h-full w-full items-center justify-center px-14 py-16 md:px-24 md:py-20">
+            <div className="relative h-full w-full">
+              <Image
+                src={lightboxItem.url}
+                alt={
+                  lightboxItem.alt || `${projectTitle} enlarged project image`
+                }
+                fill
+                sizes="100vw"
+                priority
+                placeholder={lightboxItem.lqip ? "blur" : "empty"}
+                blurDataURL={lightboxItem.lqip}
+                className="object-contain object-center"
+              />
+            </div>
           </div>
 
-          {total > 1 && (
+          {imageIndexes.length > 1 && (
             <>
               <button
                 type="button"
-                aria-label="Previous gallery item"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  goPrev();
-                }}
-                className="fixed left-2 top-1/2 z-[120] flex h-12 w-12 -translate-y-1/2 items-center justify-center font-mabrypro text-[28px] font-light leading-none text-black transition-opacity hover:opacity-40 focus-visible:outline focus-visible:outline-1 focus-visible:outline-black md:left-6"
+                onClick={goToPreviousLightboxImage}
+                aria-label="Previous enlarged image"
+                className="absolute left-3 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/15 bg-white/85 backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:left-6"
               >
-                ‹
+                <PreviousIcon />
               </button>
 
               <button
                 type="button"
-                aria-label="Next gallery item"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  goNext();
-                }}
-                className="fixed right-2 top-1/2 z-[120] flex h-12 w-12 -translate-y-1/2 items-center justify-center font-mabrypro text-[28px] font-light leading-none text-black transition-opacity hover:opacity-40 focus-visible:outline focus-visible:outline-1 focus-visible:outline-black md:right-6"
+                onClick={goToNextLightboxImage}
+                aria-label="Next enlarged image"
+                className="absolute right-3 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-black/15 bg-white/85 backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 md:right-6"
               >
-                ›
+                <NextIcon />
               </button>
-
-              <div className="fixed bottom-4 left-1/2 z-[120] -translate-x-1/2 font-mabrypro text-[9px] uppercase tracking-[0.06em] text-neutral-500 md:bottom-7 md:text-[10px]">
-                {currentIndex + 1} / {total}
-              </div>
             </>
           )}
+
+          <div className="absolute bottom-5 left-1/2 z-30 -translate-x-1/2 font-mabrypro text-[9px] uppercase tracking-[0.08em] md:bottom-6 md:text-[10px]">
+            {String(lightboxPosition + 1).padStart(2, "0")} /{" "}
+            {String(imageIndexes.length).padStart(2, "0")}
+          </div>
         </div>
       )}
     </>
