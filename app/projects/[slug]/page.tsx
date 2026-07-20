@@ -1,12 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
 import type { PortableTextBlock } from "@portabletext/types";
 import { client } from "@/sanity/lib/client";
-import ExpandableImage from "@/app/components/ExpandableImage";
 import CoverImageSelection from "@/app/components/CoverImageSelection";
 import GalleryCarousel from "@/app/components/GalleryCarousel";
+import SiteHeader from "@/app/components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -235,55 +234,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           />
         )}
 
-        <header className="fixed inset-x-0 top-0 z-30 text-white mix-blend-exclusion">
-          <div className="grid grid-cols-1 gap-5 px-4 pb-8 pt-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-12 md:px-8 md:pb-10 md:pt-5">
-            <Link
-              href="/work"
-              aria-label="Return to selected works"
-              className="min-w-0 transition-opacity hover:opacity-45"
-            >
-              <h1
-                title={project.title}
-                className="max-w-[900px] font-mabrypro text-[clamp(2.8rem,8vw,5rem)] font-semibold lowercase leading-[0.84] tracking-[-0.06em] md:text-[clamp(3.6rem,5vw,6rem)]"
-              >
-                {project.title}
-              </h1>
-            </Link>
-
-            <nav
-              aria-label="Primary navigation"
-              className="flex shrink-0 items-center justify-between gap-x-5 border-t border-black pt-3 font-mabrypro text-[10px] font-normal uppercase leading-none tracking-[0.12em] sm:justify-start md:mt-3 md:justify-end md:gap-x-9 md:border-t-0 md:pt-0 md:text-[11px]"
-            >
-              <Link
-                href="/work"
-                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-              >
-                Work
-              </Link>
-
-              <Link
-                href="/field-journal"
-                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-              >
-                Field Journal
-              </Link>
-
-              <Link
-                href="/cv"
-                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-              >
-                CV
-              </Link>
-
-              <a
-                href={`mailto:${email}`}
-                className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-              >
-                Contact
-              </a>
-            </nav>
-          </div>
-        </header>
+        <SiteHeader title={project.title} email={email} />
       </section>
 
       {/* ------------------------------------------------------------------ */}
