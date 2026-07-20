@@ -118,161 +118,174 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
         height: `${entries.length * 100}vh`,
       }}
     >
-      {/* Scroll indicator */}
-      <div
-        className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-300"
-        style={{ opacity: clamp(1 - progress * 4, 0, 1) }}
-      >
-        <span className="font-mabrypro text-[11px] uppercase tracking-[0.14em] text-black/50">
-          Scroll
-        </span>
-        <span className="h-8 w-px animate-scroll-line bg-black/30" />
-      </div>
       <div className="sticky top-0 h-screen overflow-hidden bg-white">
-        {/* Scroll indicator — now inside the sticky viewport-height container */}
+        {/* Scroll indicator */}
         <div
           className="pointer-events-none absolute bottom-8 left-1/2 z-[60] flex -translate-x-1/2 flex-col items-center gap-2 transition-opacity duration-300"
           style={{ opacity: clamp(1 - progress * 4, 0, 1) }}
         >
-          <span className="font-mabrypro text-[11px] uppercase tracking-[0.14em] text-black/50">
+          <span className="font-mabrypro text-[11px] uppercase tracking-[0.14em] text-white/70">
             Scroll
           </span>
-          <span className="h-8 w-px animate-scroll-line bg-black/30" />
+          <span className="h-8 w-px animate-scroll-line bg-white/40" />
         </div>
-        <div className="absolute inset-0 flex items-center justify-center px-4 md:px-8">
-          <div className="relative h-[84vh] w-full">
-            {entries.map((entry, index) => {
-              const shouldRender =
-                index >= activeIndex - 1 && index <= activeIndex + 3;
 
-              if (!shouldRender) {
-                return null;
-              }
+        {entries.map((entry, index) => {
+          const shouldRender =
+            index >= activeIndex - 1 && index <= activeIndex + 3;
 
-              const delta = index - progress;
-              const isPast = delta < -0.9;
+          if (!shouldRender) {
+            return null;
+          }
 
-              const scale =
-                delta < 0 ? 1.08 + Math.abs(delta) * 0.035 : 1 - delta * 0.075;
+          const delta = index - progress;
+          const isPast = delta < -0.9;
 
-              const y = delta < 0 ? 160 + Math.abs(delta) * 90 : -delta * 40;
+          // subtle zoom instead of translate, since media is full-bleed
+          const scale =
+            delta < 0 ? 1 + Math.abs(delta) * 0.08 : 1 - delta * 0.04;
 
-              // smooth crossfade: only the entry nearest delta=0 is visible,
-              // neighbors fade out within roughly one scroll-step
-              const opacity = isPast
-                ? 0
-                : clamp(1 - Math.abs(delta) * 1.4, 0, 1);
-              const zIndex = Math.round(100 - Math.abs(delta) * 10);
+          // smooth crossfade: only the entry nearest delta=0 is visible,
+          // neighbors fade out within roughly one scroll-step
+          const opacity = isPast ? 0 : clamp(1 - Math.abs(delta) * 1.4, 0, 1);
+          const zIndex = Math.round(100 - Math.abs(delta) * 10);
 
-              const style: CSSProperties = {
-                transform: `translate(-50%, calc(-50% + ${y}px)) scale(${scale})`,
-                zIndex,
-                opacity,
-                pointerEvents: opacity < 0.05 ? "none" : "auto",
-              };
+          const style: CSSProperties = {
+            transform: `scale(${scale})`,
+            zIndex,
+            opacity,
+            pointerEvents: opacity < 0.05 ? "none" : "auto",
+          };
 
-              const resolvedMediaType =
-                entry.mediaType ||
-                (entry.videoUrl ? "video" : entry.pdfUrl ? "pdf" : "image");
+          const resolvedMediaType =
+            entry.mediaType ||
+            (entry.videoUrl ? "video" : entry.pdfUrl ? "pdf" : "image");
 
-              return (
-                <article
-                  key={entry._id}
-                  className="absolute left-1/2 top-1/2 grid w-[92vw] max-w-[1280px] grid-cols-1 items-center gap-4 transition-[transform,opacity] duration-500 ease-out md:grid-cols-[150px_minmax(0,760px)_220px] md:gap-8"
-                  style={style}
+          return (
+            <article
+              key={entry._id}
+              className="absolute inset-0 overflow-hidden transition-[transform,opacity] duration-500 ease-out"
+              style={style}
+            >
+              {/* Media with padding on all sides */}
+              <div className="absolute inset-0 p-4 md:p-8 lg:p-10">
+                <div className="relative h-full w-full overflow-hidden border border-white/70">
+                  {resolvedMediaType === "image" && entry.imageUrl && (
+                    <Image
+                      loader={sanityImageLoader}
+                      src={entry.imageUrl}
+                      alt={entry.alt || entry.caption || "Field journal image"}
+                      fill
+                      sizes="calc(100vw - 2rem)"
+                      priority={index === 0}
+                      className="object-contain"
+                    />
+                  )}
+
+                  {resolvedMediaType === "video" && entry.videoUrl && (
+                    <video
+                      src={entry.videoUrl}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    >
+                      Your browser does not support video playback.
+                    </video>
+                  )}
+
+                  {resolvedMediaType === "pdf" && entry.pdfUrl && (
+                    <div className="flex h-full w-full items-center justify-center bg-white p-8 text-[#1f1a13]">
+                      <a
+                        href={entry.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
+                      >
+                        Open {entry.pdfFilename || "PDF"}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {resolvedMediaType === "video" && entry.videoUrl && (
+                <video
+                  src={entry.videoUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  className="absolute inset-0 h-full w-full object-cover"
                 >
-                  {/* Date — left side on desktop */}
-                  <div className="order-2 md:order-1 md:self-center md:text-right"></div>
-                  {/* Media */}
-                  <div className="order-2 flex h-[58vh] min-h-0 w-full items-center justify-center md:order-2 md:h-[68vh]">
-                    {resolvedMediaType === "image" && entry.imageUrl && (
-                      <div className="relative h-full w-full">
-                        <Image
-                          loader={sanityImageLoader}
-                          src={entry.imageUrl}
-                          alt={
-                            entry.alt || entry.caption || "Field journal image"
-                          }
-                          fill
-                          sizes="(max-width: 768px) 92vw, 60vw"
-                          className="object-contain"
-                        />
-                      </div>
-                    )}
+                  Your browser does not support video playback.
+                </video>
+              )}
 
-                    {resolvedMediaType === "video" && entry.videoUrl && (
-                      <video
-                        src={entry.videoUrl}
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        preload="metadata"
-                        className="block max-h-full max-w-full object-contain"
-                      >
-                        Your browser does not support video playback.
-                      </video>
-                    )}
+              {resolvedMediaType === "pdf" && entry.pdfUrl && (
+                <div className="flex h-full w-full items-center justify-center bg-white p-8">
+                  <a
+                    href={entry.pdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
+                  >
+                    Open {entry.pdfFilename || "PDF"}
+                  </a>
+                </div>
+              )}
 
-                    {resolvedMediaType === "pdf" && entry.pdfUrl && (
-                      <div className="flex h-full w-full items-center justify-center border border-black bg-white p-8">
-                        <a
-                          href={entry.pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
-                        >
-                          Open {entry.pdfFilename || "PDF"}
-                        </a>
-                      </div>
-                    )}
+              {/* Border frame around the media */}
+              <div className="pointer-events-none absolute inset-0 border border-white/70" />
+
+              {/* Writing — overlaid on the image */}
+              <div className="absolute inset-x-0 bottom-0 px-5 pb-12 pt-10 font-dean text-white md:px-16 md:pb-16">
+                {entry.date && (
+                  <time
+                    dateTime={entry.date}
+                    className="block font-mabrypro text-[11px] uppercase leading-relaxed tracking-[0.14em] text-white/70"
+                  >
+                    {formatDate(entry.date)}
+                  </time>
+                )}
+
+                {entry.caption && (
+                  <h2 className="mb-3 mt-1 text-[22px] uppercase leading-tight tracking-[0.1em] md:text-[26px]">
+                    {entry.caption}
+                  </h2>
+                )}
+
+                {entry.writing?.length ? (
+                  <div className="max-w-[60ch] text-[16px] leading-[1.7] text-white/90 md:text-[17px]">
+                    <PortableText
+                      value={entry.writing}
+                      components={{
+                        block: {
+                          normal: ({ children }) => (
+                            <p className="mb-4 last:mb-0">{children}</p>
+                          ),
+                        },
+                        marks: {
+                          em: ({ children }) => (
+                            <em className="italic">{children}</em>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold">
+                              {children}
+                            </strong>
+                          ),
+                        },
+                      }}
+                    />
                   </div>
-                  {/* Writing — right side on desktop */}
-                  <div className="order-3 font-dean md:self-center">
-                    {entry.date && (
-                      <time
-                        dateTime={entry.date}
-                        className="block font-mabrypro text-[11px] uppercase leading-relaxed tracking-[0.14em] text-black/60"
-                      >
-                        {formatDate(entry.date)}
-                      </time>
-                    )}
-                    {entry.caption && (
-                      <h2 className="mb-3 mt-1 text-[22px] uppercase leading-tight tracking-[0.1em]">
-                        {entry.caption}
-                      </h2>
-                    )}
-
-                    {entry.writing?.length ? (
-                      <div className="max-w-[46ch] text-[17px] leading-[1.7] text-black/85">
-                        <PortableText
-                          value={entry.writing}
-                          components={{
-                            block: {
-                              normal: ({ children }) => (
-                                <p className="mb-4 last:mb-0">{children}</p>
-                              ),
-                            },
-                            marks: {
-                              em: ({ children }) => (
-                                <em className="italic">{children}</em>
-                              ),
-                              strong: ({ children }) => (
-                                <strong className="font-semibold">
-                                  {children}
-                                </strong>
-                              ),
-                            },
-                          }}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

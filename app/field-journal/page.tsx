@@ -34,12 +34,11 @@ export default async function FieldJournalPage() {
 
   return (
     <main className="min-h-screen bg-white text-[#1f1a13]">
-      <header className="fixed inset-x-0 top-0 z-[100]">
-        {/* Logo */}
+      <header className="fixed inset-x-0 top-0 z-[100] pointer-events-none">
         <Link
           href="/"
           aria-label="Dean Hjerpyn homepage"
-          className="fixed left-4 top-4 z-50 block text-black md:left-10 md:top-8"
+          className="pointer-events-auto fixed left-4 top-4 z-50 block text-black mix-blend-exclusion md:left-10 md:top-8"
         >
           <span className="block font-mabrypro text-[34px] font-normal uppercase leading-[0.86] tracking-[-0.05em] md:text-[3.1vw]">
             Dean
@@ -50,10 +49,9 @@ export default async function FieldJournalPage() {
           </span>
         </Link>
 
-        {/* Navigation */}
         <nav
           aria-label="Primary navigation"
-          className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]"
+          className="pointer-events-auto fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black mix-blend-difference md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]"
         >
           <Link
             href="/work"
