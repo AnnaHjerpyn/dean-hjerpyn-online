@@ -167,9 +167,10 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
               className="absolute inset-0 overflow-hidden transition-[transform,opacity] duration-500 ease-out"
               style={style}
             >
-              {/* Media with padding on all sides */}
+              {/* Padded media frame */}
               <div className="absolute inset-0 p-4 md:p-8 lg:p-10">
-                <div className="relative h-full w-full overflow-hidden border border-white/70">
+                <div className="relative h-full w-full overflow-hidden">
+                  {/* Image */}
                   {resolvedMediaType === "image" && entry.imageUrl && (
                     <Image
                       loader={sanityImageLoader}
@@ -182,6 +183,7 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                     />
                   )}
 
+                  {/* Video */}
                   {resolvedMediaType === "video" && entry.videoUrl && (
                     <video
                       src={entry.videoUrl}
@@ -190,98 +192,69 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                       loop
                       playsInline
                       preload="metadata"
-                      className="absolute inset-0 h-full w-full object-cover"
+                      className="absolute inset-0 h-full w-full object-contain"
                     >
                       Your browser does not support video playback.
                     </video>
                   )}
 
+                  {/* PDF */}
                   {resolvedMediaType === "pdf" && entry.pdfUrl && (
                     <div className="flex h-full w-full items-center justify-center bg-white p-8 text-[#1f1a13]">
                       <a
                         href={entry.pdfUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
+                        className="text-center font-mabrypro text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
                       >
                         Open {entry.pdfFilename || "PDF"}
                       </a>
                     </div>
                   )}
-                </div>
-              </div>
 
-              {resolvedMediaType === "video" && entry.videoUrl && (
-                <video
-                  src={entry.videoUrl}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  className="absolute inset-0 h-full w-full object-cover"
-                >
-                  Your browser does not support video playback.
-                </video>
-              )}
+                  {/* Date, caption, and writing over the media */}
+                  <div className="absolute inset-x-0 bottom-0 z-20 px-5 pb-5 pt-20 font-dean text-black md:px-8 md:pb-8 lg:px-10 lg:pb-10">
+                    {entry.date && (
+                      <time
+                        dateTime={entry.date}
+                        className="block font-mabrypro text-[10px] uppercase leading-relaxed tracking-[0.14em] text-black md:text-[11px]"
+                      >
+                        {formatDate(entry.date)}
+                      </time>
+                    )}
 
-              {resolvedMediaType === "pdf" && entry.pdfUrl && (
-                <div className="flex h-full w-full items-center justify-center bg-white p-8">
-                  <a
-                    href={entry.pdfUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-center text-[11px] uppercase tracking-[0.12em] underline underline-offset-4 transition-opacity hover:opacity-50"
-                  >
-                    Open {entry.pdfFilename || "PDF"}
-                  </a>
-                </div>
-              )}
+                    {entry.caption && (
+                      <h2 className="mb-3 mt-1 text-[22px] uppercase leading-tight tracking-[0.1em] md:text-[26px]">
+                        {entry.caption}
+                      </h2>
+                    )}
 
-              {/* Border frame around the media */}
-              <div className="pointer-events-none absolute inset-0 border border-white/70" />
-
-              {/* Writing — overlaid on the image */}
-              <div className="absolute inset-x-0 bottom-0 px-5 pb-12 pt-10 font-dean text-white md:px-16 md:pb-16">
-                {entry.date && (
-                  <time
-                    dateTime={entry.date}
-                    className="block font-mabrypro text-[11px] uppercase leading-relaxed tracking-[0.14em] text-white/70"
-                  >
-                    {formatDate(entry.date)}
-                  </time>
-                )}
-
-                {entry.caption && (
-                  <h2 className="mb-3 mt-1 text-[22px] uppercase leading-tight tracking-[0.1em] md:text-[26px]">
-                    {entry.caption}
-                  </h2>
-                )}
-
-                {entry.writing?.length ? (
-                  <div className="max-w-[60ch] text-[16px] leading-[1.7] text-white/90 md:text-[17px]">
-                    <PortableText
-                      value={entry.writing}
-                      components={{
-                        block: {
-                          normal: ({ children }) => (
-                            <p className="mb-4 last:mb-0">{children}</p>
-                          ),
-                        },
-                        marks: {
-                          em: ({ children }) => (
-                            <em className="italic">{children}</em>
-                          ),
-                          strong: ({ children }) => (
-                            <strong className="font-semibold">
-                              {children}
-                            </strong>
-                          ),
-                        },
-                      }}
-                    />
+                    {entry.writing?.length ? (
+                      <div className="max-w-[60ch] text-[15px] leading-[1.65] text-black md:text-[17px]">
+                        <PortableText
+                          value={entry.writing}
+                          components={{
+                            block: {
+                              normal: ({ children }) => (
+                                <p className="mb-4 last:mb-0">{children}</p>
+                              ),
+                            },
+                            marks: {
+                              em: ({ children }) => (
+                                <em className="italic">{children}</em>
+                              ),
+                              strong: ({ children }) => (
+                                <strong className="font-semibold">
+                                  {children}
+                                </strong>
+                              ),
+                            },
+                          }}
+                        />
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                </div>
               </div>
             </article>
           );
