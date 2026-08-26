@@ -82,11 +82,13 @@ export default function AnimatedHero({
   const deanRef = useRef<HTMLSpanElement>(null);
 
   const [deanWidth, setDeanWidth] = useState(0);
+
   const shouldReduceMotion = useReducedMotion();
 
   useLayoutEffect(() => {
     const measureDean = () => {
       if (!deanRef.current) return;
+
       setDeanWidth(deanRef.current.getBoundingClientRect().width);
     };
 
@@ -146,15 +148,49 @@ export default function AnimatedHero({
   return (
     <section
       ref={sectionRef}
-      className="relative min-h-screen overflow-hidden bg-white text-black"
+      className="
+        relative
+        min-h-[100svh]
+        overflow-hidden
+        bg-white
+        text-black
+      "
     >
-      {/* Botanical background */}
+      {/* =====================================================
+          BOTANICAL BACKGROUND
+          ===================================================== */}
       <PlantGarden drawings={plantDrawings} />
 
-      {/* Left identity / navigation */}
-      <header className="fixed left-8 top-8 z-50 md:left-20 md:top-16">
+      {/* =====================================================
+          SITE IDENTITY
+          ===================================================== */}
+      <header
+        className="
+          fixed
+          left-6
+          top-6
+          z-50
+          md:left-14
+          md:top-10
+          lg:left-16
+          lg:top-10
+        "
+      >
         <Link href="/" aria-label="Dean Hjerpyn homepage" className="block">
-          <span className="block overflow-visible font-editorial text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] md:text-[76px]">
+          <span
+            className="
+              block
+              overflow-visible
+              font-editorial
+              text-[54px]
+              font-normal
+              uppercase
+              leading-[0.78]
+              tracking-[-0.075em]
+              md:text-[72px]
+              lg:text-[76px]
+            "
+          >
             <span ref={deanRef} className="inline-block">
               Dean
             </span>
@@ -162,57 +198,134 @@ export default function AnimatedHero({
 
           <motion.span
             style={{ x: hjerpynX }}
-            className="block font-editorial text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] will-change-transform md:text-[76px]"
+            className="
+              block
+              font-editorial
+              text-[54px]
+              font-normal
+              uppercase
+              leading-[0.78]
+              tracking-[-0.075em]
+              will-change-transform
+              md:text-[72px]
+              lg:text-[76px]
+            "
           >
             Hjerpyn
           </motion.span>
         </Link>
 
         <motion.nav
-          initial={shouldReduceMotion ? false : { opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={
+            shouldReduceMotion
+              ? false
+              : {
+                  opacity: 0,
+                  y: -10,
+                }
+          }
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
           transition={{
             duration: shouldReduceMotion ? 0 : 0.75,
             delay: shouldReduceMotion ? 0 : 0.45,
             ease: [0.22, 1, 0.36, 1],
           }}
-          className="mt-4 flex flex-col gap-8 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]"
+          className="
+            mt-4
+            flex
+            flex-col
+            gap-6
+            font-editorial
+            text-[16px]
+            font-normal
+            uppercase
+            leading-none
+            tracking-[0.02em]
+            md:text-[18px]
+          "
         >
           <a
             href={`mailto:${email}`}
-            className="w-fit transition-opacity hover:opacity-50"
+            className="
+              w-fit
+              transition-opacity
+              hover:opacity-50
+            "
           >
             Contact
           </a>
+
           <Link
             href="/cv"
-            className="w-fit transition-opacity hover:opacity-50"
+            className="
+              w-fit
+              transition-opacity
+              hover:opacity-50
+            "
           >
             CV
           </Link>
         </motion.nav>
       </header>
 
-      {/* Center headline / page navigation */}
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
+      {/* =====================================================
+          CENTER CONTENT
+          ===================================================== */}
+      <div
+        className="
+          relative
+          z-20
+          flex
+          min-h-[100svh]
+          items-center
+          justify-center
+          px-6
+          md:px-10
+        "
+      >
         <motion.div
           style={{
             y: headlineY,
             scale: headlineScale,
             opacity: headlineOpacity,
           }}
-          className="w-full max-w-[760px] translate-y-[12vh] will-change-transform md:translate-x-[8vw] md:translate-y-[14vh]"
+          className="
+            w-full
+            max-w-[820px]
+            translate-y-[2vh]
+            will-change-transform
+            md:translate-x-[7vw]
+            md:translate-y-[4vh]
+            lg:max-w-[860px]
+          "
         >
           <motion.p
             variants={wordsContainer}
             initial={shouldReduceMotion ? "visible" : "hidden"}
             animate="visible"
-            className="font-sabon text-[27px] font-normal leading-[1.05] tracking-[-0.035em] md:text-[36px]"
+            className="
+              font-sabon
+              text-[27px]
+              font-normal
+              leading-[1.05]
+              tracking-[-0.035em]
+              sm:text-[30px]
+              md:text-[35px]
+              lg:text-[37px]
+            "
           >
             {words.map((word, index) => (
               <span
                 key={`${word}-${index}`}
-                className="mr-[0.24em] inline-block overflow-hidden align-bottom"
+                className="
+                  mr-[0.24em]
+                  inline-block
+                  overflow-hidden
+                  align-bottom
+                "
               >
                 <motion.span variants={wordAnimation} className="inline-block">
                   {word}
@@ -225,12 +338,28 @@ export default function AnimatedHero({
             variants={linkContainer}
             initial={shouldReduceMotion ? "visible" : "hidden"}
             animate="visible"
-            className="mt-6 flex flex-col gap-5 font-editorial text-[16px] font-normal uppercase leading-none tracking-[0.02em] md:text-[18px]"
+            className="
+              mt-5
+              flex
+              flex-col
+              gap-4
+              font-editorial
+              text-[16px]
+              font-normal
+              uppercase
+              leading-none
+              tracking-[0.02em]
+              md:text-[18px]
+            "
           >
             <motion.div variants={linkAnimation}>
               <Link
                 href="/work"
-                className="w-fit transition-opacity hover:opacity-50"
+                className="
+                  w-fit
+                  transition-opacity
+                  hover:opacity-50
+                "
               >
                 Work
               </Link>
@@ -239,7 +368,11 @@ export default function AnimatedHero({
             <motion.div variants={linkAnimation}>
               <Link
                 href="/field-journal"
-                className="w-fit transition-opacity hover:opacity-50"
+                className="
+                  w-fit
+                  transition-opacity
+                  hover:opacity-50
+                "
               >
                 Field Journal
               </Link>
