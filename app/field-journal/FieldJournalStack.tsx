@@ -224,7 +224,7 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
                     )}
 
                     {entry.caption && (
-                      <h2 className="mb-3 mt-1 text-[22px] uppercase leading-tight tracking-[0.1em] md:text-[26px]">
+                      <h2 className="mb-3 mt-1 text-[32px] uppercase leading-tight tracking-[0.1em] md:text-[26px]">
                         {entry.caption}
                       </h2>
                     )}
