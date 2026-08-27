@@ -23,42 +23,20 @@ type PlantPlacement = {
   popOrder: number;
 };
 
-/*
-  Breakpoint used to decide whether we render the
-  dense desktop composition or the lighter mobile one.
-*/
 const MOBILE_BREAKPOINT = 768;
 
-/*
-  Desktop: dense botanical wall.
-  Mobile: fewer flowers so the layout stays readable
-  and lightweight on small screens.
-*/
 const DESKTOP_PLANT_COUNT = 160;
 const MOBILE_PLANT_COUNT = 55;
 
-/*
-  Column count drives horizontal density. Fewer columns
-  on mobile spreads flowers out instead of cramming them.
-*/
 const DESKTOP_COLUMNS = 20;
 const MOBILE_COLUMNS = 8;
 
-/*
-  Fast entrance animation.
-*/
 const PLANT_INTERVAL = 35;
-
-/*
-  How long a flower disappears after the cursor
-  touches it.
-*/
 const PLANT_RETURN_DELAY = 700;
 
-/*
-  Larger flowers on desktop; smaller on mobile so the
-  lighter count doesn't leave oversized gaps.
-*/
+// Animation timing
+const PLANT_APPEAR_DURATION = 450;
+
 const DESKTOP_MAX_PLANT_WIDTH = 190;
 const DESKTOP_MAX_PLANT_HEIGHT = 360;
 
@@ -66,10 +44,11 @@ const MOBILE_MAX_PLANT_WIDTH = 130;
 const MOBILE_MAX_PLANT_HEIGHT = 240;
 
 /*
-  Seeded random generator.
-
-  Keeps the composition consistent between renders.
+|--------------------------------------------------------------------------
+| Seeded random
+|--------------------------------------------------------------------------
 */
+
 function createSeededRandom(seed: number) {
   let value = seed;
 
@@ -80,18 +59,11 @@ function createSeededRandom(seed: number) {
 }
 
 /*
-  Create the botanical composition.
-
-  The layout intentionally has:
-
-  - many columns (desktop) or fewer (mobile)
-  - strong overlap
-  - flowers near every edge
-  - flowers behind the center content
-  - large vertical variation
-  - random rotations
-  - random scales
+|--------------------------------------------------------------------------
+| Create placements
+|--------------------------------------------------------------------------
 */
+
 function createPlacements(
   count: number,
   columns: number,
@@ -107,54 +79,42 @@ function createPlacements(
 
   const rows = Math.ceil(count / columns);
 
-  /*
-    Use the full viewport vertically.
-  */
   const gardenHeight = 100;
 
   const cellWidth = 100 / columns;
-
   const cellHeight = gardenHeight / rows;
 
   return Array.from({ length: count }, (_, index) => {
     const column = index % columns;
-
     const row = Math.floor(index / columns);
 
     /*
-        Strong horizontal overlap.
-      */
+     * Strong horizontal overlap.
+     */
     const horizontalJitter = (random() - 0.5) * cellWidth * 2.5;
 
     /*
-        Strong vertical overlap.
-      */
+     * Strong vertical overlap.
+     */
     const verticalJitter = (random() - 0.5) * cellHeight * 2.5;
 
     /*
-        Some flowers are intentionally
-        pushed toward the edges.
-      */
+     * Position.
+     */
     let left = column * cellWidth + cellWidth / 2 + horizontalJitter;
 
     let top = row * cellHeight + cellHeight / 2 + verticalJitter;
 
     /*
-        Allow a small number of flowers
-        to extend beyond the viewport.
-
-        This prevents obvious hard edges.
-      */
+     * Allow flowers to extend beyond
+     * the viewport.
+     */
     left += (random() - 0.5) * 8;
-
     top += (random() - 0.5) * 8;
 
     /*
-        Large variation in plant sizes.
-
-        Some are delicate.
-        Some dominate the composition.
-      */
+     * Large variation in sizes.
+     */
     const width = sizeConfig.minWidth + random() * sizeConfig.widthRange;
 
     const height = sizeConfig.minHeight + random() * sizeConfig.heightRange;
@@ -168,55 +128,55 @@ function createPlacements(
       width,
       height,
 
-      /*
-          More dramatic rotation.
-        */
       rotate: -22 + random() * 44,
 
-      /*
-          Random horizontal flip.
-        */
       flip: random() > 0.5 ? -1 : 1,
 
-      /*
-          More layering variation.
-        */
       zIndex: Math.floor(random() * 9) + 1,
 
-      /*
-          Random appearance order.
-        */
       popOrder: random(),
     };
   });
 }
 
 /*
-  Same seed for both compositions so the "feel" of the
-  layout (clustering, rotation bias) stays consistent
-  between desktop and mobile.
+|--------------------------------------------------------------------------
+| Composition
+|--------------------------------------------------------------------------
 */
+
 const COMPOSITION_SEED = 2847;
 
 const desktopPlacements = createPlacements(
   DESKTOP_PLANT_COUNT,
   DESKTOP_COLUMNS,
   COMPOSITION_SEED,
-  { minWidth: 65, widthRange: 125, minHeight: 150, heightRange: 210 }
+  {
+    minWidth: 65,
+    widthRange: 125,
+    minHeight: 150,
+    heightRange: 210,
+  }
 );
 
 const mobilePlacements = createPlacements(
   MOBILE_PLANT_COUNT,
   MOBILE_COLUMNS,
   COMPOSITION_SEED,
-  { minWidth: 55, widthRange: 90, minHeight: 110, heightRange: 150 }
+  {
+    minWidth: 55,
+    widthRange: 90,
+    minHeight: 110,
+    heightRange: 150,
+  }
 );
 
 /*
-  Detect mobile viewport via matchMedia so we only
-  recompute when crossing the breakpoint, not on every
-  resize pixel.
+|--------------------------------------------------------------------------
+| Mobile detection
+|--------------------------------------------------------------------------
 */
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
@@ -239,6 +199,12 @@ function useIsMobile() {
   return isMobile;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Plant Garden
+|--------------------------------------------------------------------------
+*/
+
 export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
   const isMobile = useIsMobile();
 
@@ -248,25 +214,58 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
     () => new Set()
   );
 
+  /*
+   * Timers used to bring flowers back.
+   */
   const returnTimers = useRef<Map<number, number>>(new Map());
+
+  /*
+   * Track whether reduced motion
+   * is preferred.
+   */
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  /*
+   * Detect reduced motion.
+   */
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => {
+      setPrefersReducedMotion(event.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Select composition
+  |--------------------------------------------------------------------------
+  */
 
   const placements = isMobile ? mobilePlacements : desktopPlacements;
 
   const maxPlantWidth = isMobile
     ? MOBILE_MAX_PLANT_WIDTH
     : DESKTOP_MAX_PLANT_WIDTH;
+
   const maxPlantHeight = isMobile
     ? MOBILE_MAX_PLANT_HEIGHT
     : DESKTOP_MAX_PLANT_HEIGHT;
 
   /*
-    Connect every generated position
-    with one of the Sanity plant drawings.
-
-    Waits until we know the viewport (isMobile !== null)
-    so we don't briefly render the wrong density before
-    hydration settles.
+  |--------------------------------------------------------------------------
+  | Connect drawings to placements
+  |--------------------------------------------------------------------------
   */
+
   const plants = useMemo(() => {
     if (!drawings.length || isMobile === null) {
       return [];
@@ -275,21 +274,26 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
     return placements
       .map((placement, index) => ({
         ...placement,
+
         drawing: drawings[index % drawings.length],
       }))
       .sort((a, b) => a.popOrder - b.popOrder);
   }, [drawings, placements, isMobile]);
 
   /*
-    Progressive entrance animation.
+  |--------------------------------------------------------------------------
+  | Progressive entrance
+  |--------------------------------------------------------------------------
   */
+
   useEffect(() => {
     setVisibleCount(0);
+
     setHiddenPlants(new Set());
 
     /*
-      Clear existing timers.
-    */
+     * Clear existing timers.
+     */
     returnTimers.current.forEach((timer) => {
       window.clearTimeout(timer);
     });
@@ -301,11 +305,9 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
     }
 
     /*
-      Start with a large cluster already visible.
-
-      This prevents the first few seconds from
-      looking too sparse.
-    */
+     * Start with a large cluster already
+     * visible so the page doesn't look empty.
+     */
     setVisibleCount(Math.min(35, plants.length));
 
     const interval = window.setInterval(() => {
@@ -326,18 +328,36 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
   }, [plants.length]);
 
   /*
-    Flower hover interaction.
+  |--------------------------------------------------------------------------
+  | Hover interaction
+  |
+  | IMPORTANT:
+  |
+  | We keep the original elementsFromPoint
+  | behavior because the flowers overlap.
+  |
+  | The requestAnimationFrame throttle prevents
+  | Safari from running an expensive hit-test
+  | for every single pointer event.
+  |--------------------------------------------------------------------------
   */
+
   useEffect(() => {
     const hidePlantTemporarily = (plantId: number) => {
       /*
-        Don't create multiple timers
-        for the same flower.
-      */
+       * Don't create multiple timers
+       * for the same flower.
+       */
       if (returnTimers.current.has(plantId)) {
         return;
       }
 
+      /*
+       * Hide the flower.
+       *
+       * It is removed from the DOM so the
+       * flower underneath becomes interactive.
+       */
       setHiddenPlants((current) => {
         if (current.has(plantId)) {
           return current;
@@ -351,9 +371,8 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
       });
 
       /*
-        Restore the flower after
-        the configured delay.
-      */
+       * Bring it back after the delay.
+       */
       const returnTimer = window.setTimeout(() => {
         setHiddenPlants((current) => {
           if (!current.has(plantId)) {
@@ -373,31 +392,80 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
       returnTimers.current.set(plantId, returnTimer);
     };
 
+    /*
+     * Store the latest pointer position.
+     */
+    let lastX = 0;
+    let lastY = 0;
+
+    /*
+     * Only perform one expensive hit test
+     * per animation frame.
+     */
+    let frameId: number | null = null;
+
     const handlePointerMove = (event: PointerEvent) => {
-      const elements = document.elementsFromPoint(event.clientX, event.clientY);
+      lastX = event.clientX;
 
-      const hoveredPlant = elements.find((element) =>
-        element.hasAttribute("data-plant-id")
-      );
+      lastY = event.clientY;
 
-      if (!hoveredPlant) {
+      /*
+       * A frame is already scheduled.
+       * Just use the latest coordinates.
+       */
+      if (frameId !== null) {
         return;
       }
 
-      const plantId = Number(hoveredPlant.getAttribute("data-plant-id"));
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
 
-      if (Number.isNaN(plantId)) {
-        return;
-      }
+        /*
+         * Find everything underneath
+         * the cursor.
+         *
+         * This is what allows the next
+         * flower underneath to become
+         * interactive when the first one
+         * disappears.
+         */
+        const elements = document.elementsFromPoint(lastX, lastY);
 
-      hidePlantTemporarily(plantId);
+        const hoveredPlant = elements.find((element) =>
+          element.hasAttribute("data-plant-id")
+        );
+
+        if (!hoveredPlant) {
+          return;
+        }
+
+        const plantId = Number(hoveredPlant.getAttribute("data-plant-id"));
+
+        if (Number.isNaN(plantId)) {
+          return;
+        }
+
+        hidePlantTemporarily(plantId);
+      });
     };
 
-    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
 
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
 
+      /*
+       * Cancel pending frame.
+       */
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      /*
+       * Clear all return timers.
+       */
       returnTimers.current.forEach((timer) => {
         window.clearTimeout(timer);
       });
@@ -406,9 +474,21 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
     };
   }, []);
 
+  /*
+  |--------------------------------------------------------------------------
+  | Nothing to render
+  |--------------------------------------------------------------------------
+  */
+
   if (!plants.length) {
     return null;
   }
+
+  /*
+  |--------------------------------------------------------------------------
+  | Render
+  |--------------------------------------------------------------------------
+  */
 
   return (
     <div
@@ -423,12 +503,23 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
         overflow-hidden
         bg-white
       "
+      style={{
+        contain: "layout style paint",
+      }}
     >
       {plants.map((plant, index) => {
         const hasAppeared = index < visibleCount;
 
         const hasDisappeared = hiddenPlants.has(plant.id);
 
+        /*
+         * Keep the original behavior:
+         * hidden flowers are removed.
+         *
+         * This is important because it allows
+         * elementsFromPoint() to discover the
+         * flower underneath.
+         */
         if (!hasAppeared || hasDisappeared) {
           return null;
         }
@@ -437,37 +528,56 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
           <div
             key={`${plant.drawing.url}-${plant.id}`}
             className="
+                plant-appear
                 pointer-events-none
                 absolute
                 flex
                 items-center
                 justify-center
               "
-            style={{
-              left: `${plant.left}%`,
-              top: `${plant.top}%`,
+            style={
+              {
+                left: `${plant.left}%`,
 
-              width: `${plant.width}px`,
-              height: `${plant.height}px`,
+                top: `${plant.top}%`,
 
-              maxWidth: `${maxPlantWidth}px`,
+                width: `${plant.width}px`,
 
-              maxHeight: `${maxPlantHeight}px`,
+                height: `${plant.height}px`,
 
-              zIndex: plant.zIndex,
+                maxWidth: `${maxPlantWidth}px`,
 
-              transform: `
+                maxHeight: `${maxPlantHeight}px`,
+
+                zIndex: plant.zIndex,
+
+                /*
+                 * Keep the original transform.
+                 */
+                transform: `
                   translate(-50%, -50%)
                   rotate(${plant.rotate}deg)
                   scaleX(${plant.flip})
                 `,
-            }}
+
+                /*
+                 * Pass the values to CSS so the
+                 * appearance animation can preserve
+                 * the flower's actual rotation.
+                 */
+                "--plant-rotate": `${plant.rotate}deg`,
+
+                "--plant-flip": `${plant.flip}`,
+              } as React.CSSProperties
+            }
           >
             <img
               src={plant.drawing.url}
               alt={plant.drawing.alt || ""}
               data-plant-id={plant.id}
               draggable={false}
+              decoding="async"
+              loading="lazy"
               className="
                   pointer-events-auto
                   block
