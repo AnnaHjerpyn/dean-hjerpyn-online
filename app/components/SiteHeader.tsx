@@ -5,10 +5,15 @@ import Link from "next/link";
 
 type SiteHeaderProps = {
   title: string;
+  href?: string;
   email: string;
 };
 
-export default function SiteHeader({ title, email }: SiteHeaderProps) {
+export default function SiteHeader({
+  title,
+  href = "/",
+  email,
+}: SiteHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
@@ -17,20 +22,25 @@ export default function SiteHeader({ title, email }: SiteHeaderProps) {
     { href: "/cv", label: "CV" },
   ];
 
+  // Split the title into words so "Dean Hjerpyn"
+  // automatically becomes two stacked lines.
+  const titleParts = title.trim().split(/\s+/);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-30 text-white mix-blend-exclusion">
-      <div className="grid grid-cols-1 gap-5 px-4 pb-8 pt-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-12 md:px-8 md:pb-10 md:pt-5">
-        <div className="flex items-start justify-between gap-4 min-w-0">
+    <header className="fixed inset-x-0 top-0 z-[200] text-white mix-blend-exclusion">
+      <div className="grid grid-cols-1 gap-5 px-4 pb-8 pt-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-12 md:px-10 md:pb-10 md:pt-8">
+        <div className="flex min-w-0 items-start justify-between gap-4">
           <Link
-            href="/work"
-            aria-label="Return to selected works"
-            className="min-w-0 transition-opacity hover:opacity-45"
+            href={href}
+            aria-label={`${title} homepage`}
+            className="relative z-[201] block shrink-0 transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
           >
-            <h1
-              title={title}
-              className="max-w-[900px] font-mabrypro text-[clamp(2.8rem,8vw,5rem)] font-semibold lowercase leading-[0.84] tracking-[-0.06em] md:text-[clamp(3.6rem,5vw,6rem)]"
-            >
-              {title}
+            <h1 className="font-mabrypro text-[32px] font-normal uppercase leading-[0.82] tracking-[-0.055em] md:text-[3.1vw]">
+              {titleParts.map((part, index) => (
+                <span key={`${part}-${index}`} className="block">
+                  {part}
+                </span>
+              ))}
             </h1>
           </Link>
 
@@ -62,36 +72,22 @@ export default function SiteHeader({ title, email }: SiteHeaderProps) {
           </button>
         </div>
 
-        {/* Nav links — always visible on desktop, toggled on mobile */}
         <nav
           aria-label="Primary navigation"
           className={`${
             isOpen ? "flex" : "hidden"
           } flex-col items-start gap-y-5 pt-5 font-mabrypro text-[10px] font-normal uppercase leading-none tracking-[0.12em] md:mt-3 md:flex md:flex-row md:items-center md:justify-end md:gap-x-9 md:pt-0 md:text-[11px]`}
         >
-          <Link
-            href="/work"
-            onClick={() => setIsOpen(false)}
-            className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-          >
-            Work
-          </Link>
-
-          <Link
-            href="/field-journal"
-            onClick={() => setIsOpen(false)}
-            className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-          >
-            Field Journal
-          </Link>
-
-          <Link
-            href="/cv"
-            onClick={() => setIsOpen(false)}
-            className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-          >
-            CV
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className="transition-opacity duration-200 hover:opacity-40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+            >
+              {link.label}
+            </Link>
+          ))}
 
           <a
             href={`mailto:${email}`}

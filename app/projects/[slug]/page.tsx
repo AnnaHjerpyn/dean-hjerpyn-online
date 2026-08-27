@@ -234,7 +234,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           />
         )}
 
-        <SiteHeader title={project.title} email={email} />
+        <SiteHeader title={project.title} href={"/work"} email={email} />
       </section>
 
       {/* ------------------------------------------------------------------ */}

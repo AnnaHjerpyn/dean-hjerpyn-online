@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { useRouter } from "next/navigation";
 
 export type WorkProject = {
   _id: string;
@@ -448,6 +449,8 @@ function SelectionFrame({
 }
 
 export default function WorkCanvas({ projects }: WorkCanvasProps) {
+  const router = useRouter();
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const asideRef = useRef<HTMLElement>(null);
 
@@ -464,6 +467,14 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     width: 0,
     availableHeight: 0,
   });
+
+  function handleDoubleClick(project: WorkProject) {
+    if (!project.slug) {
+      return;
+    }
+
+    router.push(`/projects/${encodeURIComponent(project.slug)}`);
+  }
 
   const [exclusionZone, setExclusionZone] = useState<ExclusionZone | null>(
     null
@@ -1201,6 +1212,7 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
               onPointerMove={(event) => handlePointerMove(event, project._id)}
               onPointerUp={(event) => handlePointerUp(event, project._id)}
               onPointerCancel={(event) => handlePointerUp(event, project._id)}
+              onDoubleClick={() => handleDoubleClick(project)}
             >
               <div className="relative h-full w-full overflow-visible bg-[#eeeeee]">
                 <Image
