@@ -611,7 +611,7 @@ export default function GalleryCarousel({
           role="dialog"
           aria-modal="true"
           aria-label="Enlarged project image"
-          className="fixed inset-0 z-[100] bg-[#f5f5f2]/98 text-black"
+          className="fixed inset-0 z-[999] bg-[#f5f5f2]/98 text-black"
         >
           <button
             type="button"
