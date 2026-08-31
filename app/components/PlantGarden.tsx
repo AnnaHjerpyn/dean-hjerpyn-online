@@ -25,7 +25,7 @@ type PlantPlacement = {
 
 const MOBILE_BREAKPOINT = 768;
 
-const DESKTOP_PLANT_COUNT = 225;
+const DESKTOP_PLANT_COUNT = 325;
 const MOBILE_PLANT_COUNT = 65;
 
 const DESKTOP_COLUMNS = 20;
