@@ -461,8 +461,9 @@ export default function WorkCanvas({ projects }: WorkCanvasProps) {
     createInitialLayouts(projects)
   );
 
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(
+    () => projects.find((project) => project.coverImageUrl)?._id ?? null
+  );
   const [canvasMetrics, setCanvasMetrics] = useState<CanvasMetrics>({
     width: 0,
     availableHeight: 0,
