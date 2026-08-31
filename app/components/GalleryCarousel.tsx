@@ -387,6 +387,7 @@ export default function GalleryCarousel({
     }
 
     const previousOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
 
     return () => {
@@ -438,8 +439,20 @@ export default function GalleryCarousel({
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        {/* Main media */}
-        <div className="relative h-[55vh] min-h-[360px] max-h-[850px] w-full overflow-hidden bg-white md:h-[75vh] md:min-h-[540px]">
+        {/* ---------------------------------------------------------------- */}
+        {/* Main media                                                       */}
+        {/* ---------------------------------------------------------------- */}
+
+        <div
+          className="
+            relative
+            aspect-[4/3]
+            w-full
+            overflow-hidden
+            bg-white
+            md:aspect-[3/2]
+          "
+        >
           {items.map((item, index) => {
             const isActive = index === activeIndex;
 
@@ -447,13 +460,16 @@ export default function GalleryCarousel({
               <div
                 key={item._key}
                 aria-hidden={!isActive}
-                className={`absolute inset-0 transition-opacity duration-500 ease-out ${
+                className={`absolute inset-0 transition-opacity duration-250 ease-out ${
                   isActive
                     ? "z-10 opacity-100"
                     : "pointer-events-none z-0 opacity-0"
                 }`}
               >
-                {/* Image */}
+                {/* -------------------------------------------------------- */}
+                {/* Image                                                      */}
+                {/* -------------------------------------------------------- */}
+
                 {item._type === "image" && (
                   <figure className="flex h-full w-full flex-col">
                     <button
@@ -490,7 +506,10 @@ export default function GalleryCarousel({
                   </figure>
                 )}
 
-                {/* Video */}
+                {/* -------------------------------------------------------- */}
+                {/* Video                                                      */}
+                {/* -------------------------------------------------------- */}
+
                 {item._type === "video" && (
                   <CarouselVideo
                     item={item}
@@ -499,7 +518,10 @@ export default function GalleryCarousel({
                   />
                 )}
 
-                {/* PDF */}
+                {/* -------------------------------------------------------- */}
+                {/* PDF                                                        */}
+                {/* -------------------------------------------------------- */}
+
                 {item._type === "pdf" && (
                   <div className="flex h-full w-full items-center justify-center bg-[#f3f3f1] px-6">
                     <div className="flex max-w-md flex-col items-center text-center">
@@ -526,7 +548,10 @@ export default function GalleryCarousel({
             );
           })}
 
-          {/* Controls */}
+          {/* ---------------------------------------------------------------- */}
+          {/* Controls                                                         */}
+          {/* ---------------------------------------------------------------- */}
+
           {itemCount > 1 && (
             <div
               className={`transition-opacity duration-300 ${
@@ -562,7 +587,10 @@ export default function GalleryCarousel({
           )}
         </div>
 
-        {/* Minimal count and indicators */}
+        {/* ---------------------------------------------------------------- */}
+        {/* Minimal count and indicators                                      */}
+        {/* ---------------------------------------------------------------- */}
+
         {itemCount > 1 && (
           <div
             className={`mt-3 flex items-center justify-between font-mabrypro text-[9px] uppercase tracking-[0.06em] transition-opacity duration-300 md:text-[10px] ${
@@ -602,9 +630,9 @@ export default function GalleryCarousel({
         )}
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* Image lightbox                                                     */}
-      {/* ------------------------------------------------------------------ */}
+      {/* -------------------------------------------------------------------- */}
+      {/* Image lightbox                                                       */}
+      {/* -------------------------------------------------------------------- */}
 
       {lightboxItem && lightboxItem._type === "image" && (
         <div

@@ -238,11 +238,9 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
         <SiteHeader title={project.title} href={"/work"} email={email} />
       </section>
-
       {/* ------------------------------------------------------------------ */}
       {/* Description and project details                                    */}
       {/* ------------------------------------------------------------------ */}
-
       <section className="px-5 py-20 md:px-8 md:py-28 lg:py-32">
         <div className="grid grid-cols-1 gap-14 md:grid-cols-12 md:gap-x-8">
           {/* Project description */}
@@ -327,13 +325,11 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           )}
         </div>
       </section>
-
       {/* ------------------------------------------------------------------ */}
       {/* Additional project gallery                                         */}
       {/* ------------------------------------------------------------------ */}
-
       {galleryItems.length > 0 && (
-        <section className="px-4 py-10 md:px-8 md:py-16">
+        <section className="px-0 md:px-2 md:px-4 md:py-16">
           <GalleryCarousel items={galleryItems} projectTitle={project.title} />
         </section>
       )}
@@ -341,7 +337,6 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
       {/* ------------------------------------------------------------------ */}
       {/* Bottom navigation                                                  */}
       {/* ------------------------------------------------------------------ */}
-
       <footer className="px-5 py-8 md:px-8 md:py-10">
         <div className="flex items-center justify-between border-t border-black pt-4 font-mabrypro text-[9px] font-normal uppercase tracking-[0.05em] md:text-[10px]">
           <Link
