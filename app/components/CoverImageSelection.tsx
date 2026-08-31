@@ -9,48 +9,36 @@ type CoverImageSelectionProps = {
   src: string;
   alt: string;
   lqip?: string;
+  width?: number;
+  height?: number;
 };
 
 export default function CoverImageSelection({
   src,
   alt,
   lqip,
+  width,
+  height,
 }: CoverImageSelectionProps) {
   const [showSelection, setShowSelection] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSelection(false), 2000);
-
     return () => clearTimeout(timer);
   }, []);
+
+  // Fall back to a sane default ratio if metadata is missing
+  const ratio = width && height ? width / height : 16 / 9;
 
   return (
     <div
       className="
         mx-auto w-full max-w-[1400px]
-
-        px-6
-        sm:px-12
-        md:px-20
-        lg:px-28
-        xl:px-36
-
-        pt-8
-        sm:pt-12
-        md:pt-16
-        lg:pt-20
-      "
-    >
-      <div
-        className="
-          relative w-full
-
-          aspect-[4/5]
-          sm:aspect-[16/10]
-          md:aspect-[16/9]
-          lg:aspect-[21/9]
+        px-6 sm:px-12 md:px-20 lg:px-28 xl:px-36
+        pt-2 sm:pt-3 md:pt-4 lg:pt-5
         "
-      >
+    >
+      <div className="relative w-full" style={{ aspectRatio: ratio }}>
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={src}
@@ -60,10 +48,11 @@ export default function CoverImageSelection({
             sizes="(min-width: 1400px) 1272px, 100vw"
             placeholder={lqip ? "blur" : undefined}
             blurDataURL={lqip}
-            className="object-cover"
+            className="object-contain"
           />
         </div>
 
+        {/* selection overlay unchanged */}
         <div
           aria-hidden="true"
           className={`pointer-events-none absolute inset-0 z-10 border transition-opacity duration-700 ease-out ${
@@ -85,7 +74,6 @@ export default function CoverImageSelection({
               strokeWidth="1"
               vectorEffect="non-scaling-stroke"
             />
-
             <line
               x1="100"
               y1="0"
@@ -96,7 +84,6 @@ export default function CoverImageSelection({
               vectorEffect="non-scaling-stroke"
             />
           </svg>
-
           {[
             "left-[-5px] top-[-5px]",
             "right-[-5px] top-[-5px]",

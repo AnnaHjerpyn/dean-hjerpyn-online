@@ -231,6 +231,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             src={project.coverImage.url}
             alt={project.coverImage.alt || project.title}
             lqip={project.coverImage.lqip}
+            width={project.coverImage.width}
+            height={project.coverImage.height}
           />
         )}
 
