@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import {
+  AnimatePresence,
   motion,
   useReducedMotion,
   useScroll,
@@ -48,30 +49,36 @@ const wordAnimation = {
   },
 };
 
-const linkContainer = {
+const menuContainer = {
   hidden: {},
   visible: {
     transition: {
-      delayChildren: 0.8,
-      staggerChildren: 0.12,
+      delayChildren: 0.1,
+      staggerChildren: 0.06,
     },
   },
 };
 
-const linkAnimation = {
+const menuItem = {
   hidden: {
+    y: 24,
     opacity: 0,
-    y: 10,
   },
   visible: {
-    opacity: 1,
     y: 0,
+    opacity: 1,
     transition: {
-      duration: 0.65,
+      duration: 0.5,
       ease: [0.22, 1, 0.36, 1] as const,
     },
   },
 };
+
+const navLinks = [
+  { href: "/work", label: "Work" },
+  { href: "/field-journal", label: "Field Journal" },
+  { href: "/cv", label: "CV" },
+];
 
 export default function AnimatedHero({
   headline,
@@ -82,6 +89,7 @@ export default function AnimatedHero({
   const deanRef = useRef<HTMLSpanElement>(null);
 
   const [deanWidth, setDeanWidth] = useState(0);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const shouldReduceMotion = useReducedMotion();
 
@@ -107,6 +115,18 @@ export default function AnimatedHero({
       window.removeEventListener("resize", measureDean);
     };
   }, []);
+
+  // Lock body scroll while the mobile menu is open.
+  useLayoutEffect(() => {
+    if (isMenuOpen) {
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        document.body.style.overflow = previousOverflow;
+      };
+    }
+  }, [isMenuOpen]);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -162,114 +182,254 @@ export default function AnimatedHero({
       <PlantGarden drawings={plantDrawings} />
 
       {/* =====================================================
-          SITE IDENTITY
+          SITE IDENTITY + NAV
           ===================================================== */}
       <header
         className="
           fixed
-          left-6
-          top-6
-          z-50
-          md:left-14
-          md:top-10
-          lg:left-16
-          lg:top-10
+          inset-x-0
+          top-0
+          z-[200]
+          text-white
+          mix-blend-exclusion
         "
       >
-        <Link href="/" aria-label="Dean Hjerpyn homepage" className="block">
-          <span
-            className="
-              block
-              overflow-visible
-              font-editorial
-              text-[54px]
-              font-normal
-              uppercase
-              leading-[0.78]
-              tracking-[-0.075em]
-              md:text-[72px]
-              lg:text-[76px]
-            "
-          >
-            <span ref={deanRef} className="inline-block">
-              Dean
-            </span>
-          </span>
-
-          <motion.span
-            style={{ x: hjerpynX }}
-            className="
-              block
-              font-editorial
-              text-[54px]
-              font-normal
-              uppercase
-              leading-[0.78]
-              tracking-[-0.075em]
-              will-change-transform
-              md:text-[72px]
-              lg:text-[76px]
-            "
-          >
-            Hjerpyn
-          </motion.span>
-        </Link>
-
-        <motion.nav
-          initial={
-            shouldReduceMotion
-              ? false
-              : {
-                  opacity: 0,
-                  y: -10,
-                }
-          }
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: shouldReduceMotion ? 0 : 0.75,
-            delay: shouldReduceMotion ? 0 : 0.45,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+        <div
           className="
-            mt-4
-            flex
-            flex-col
-            gap-6
-            font-editorial
-            text-[16px]
-            font-normal
-            uppercase
-            leading-none
-            tracking-[0.02em]
-            md:text-[18px]
+            grid
+            grid-cols-1
+            gap-5
+            px-4
+            pb-8
+            pt-4
+            md:grid-cols-[minmax(0,1fr)_auto]
+            md:items-start
+            md:gap-12
+            md:px-10
+            md:pb-10
+            md:pt-8
           "
         >
-          <a
-            href={`mailto:${email}`}
-            className="
-              w-fit
-              transition-opacity
-              hover:opacity-50
-            "
-          >
-            Contact
-          </a>
+          <div className="flex min-w-0 items-center justify-between gap-4">
+            <Link
+              href="/"
+              aria-label="Dean Hjerpyn homepage"
+              onClick={() => setIsMenuOpen(false)}
+              className="
+                relative
+                z-[201]
+                block
+                min-w-0
+                shrink-0
+                transition-opacity
+                duration-200
+                hover:opacity-40
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-4
+              "
+            >
+              <h1 className="font-mabrypro text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] md:text-[72px] lg:text-[76px]">
+                <span ref={deanRef} className="inline-block">
+                  Dean
+                </span>
 
-          <Link
-            href="/cv"
+                <motion.span
+                  style={{ x: hjerpynX }}
+                  className="
+                    block
+                    will-change-transform
+                  "
+                >
+                  Hjerpyn
+                </motion.span>
+              </h1>
+            </Link>
+
+            {/* Hamburger / close toggle — mobile only */}
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMenuOpen}
+              className="relative z-[201] shrink-0 md:hidden"
+            >
+              <div className="flex h-4 w-7 flex-col justify-between">
+                <span
+                  className={`block h-[1.5px] w-full bg-white transition-transform duration-200 ${
+                    isMenuOpen ? "translate-y-[7px] rotate-45" : ""
+                  }`}
+                />
+                <span
+                  className={`block h-[1.5px] w-full bg-white transition-opacity duration-200 ${
+                    isMenuOpen ? "opacity-0" : "opacity-100"
+                  }`}
+                />
+                <span
+                  className={`block h-[1.5px] w-full bg-white transition-transform duration-200 ${
+                    isMenuOpen ? "-translate-y-[7px] -rotate-45" : ""
+                  }`}
+                />
+              </div>
+            </button>
+          </div>
+
+          {/* Desktop nav — always visible at md and up */}
+          <motion.nav
+            aria-label="Primary navigation"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.75,
+              delay: shouldReduceMotion ? 0 : 0.45,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             className="
-              w-fit
-              transition-opacity
-              hover:opacity-50
+              hidden
+              md:mt-3
+              md:flex
+              md:items-center
+              md:justify-end
+              md:gap-x-9
+              font-editorial
+              text-[11px]
+              font-normal
+              uppercase
+              leading-none
+              tracking-[0.12em]
             "
           >
-            CV
-          </Link>
-        </motion.nav>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="
+                  transition-opacity
+                  duration-200
+                  hover:opacity-40
+                  focus-visible:outline
+                  focus-visible:outline-2
+                  focus-visible:outline-offset-4
+                "
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            <a
+              href={`mailto:${email}`}
+              className="
+                transition-opacity
+                duration-200
+                hover:opacity-40
+                focus-visible:outline
+                focus-visible:outline-2
+                focus-visible:outline-offset-4
+              "
+            >
+              Contact
+            </a>
+          </motion.nav>
+        </div>
       </header>
+
+      {/* =====================================================
+          MOBILE FULL-SCREEN MENU
+          Sits directly over the plant garden with no opaque
+          backdrop, so the illustrations stay fully visible.
+          ===================================================== */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="
+              fixed
+              inset-0
+              z-[190]
+              flex
+              flex-col
+              justify-start
+              px-4
+              pt-[350px]
+              text-black
+              md:hidden
+            "
+          >
+            <motion.nav
+              aria-label="Mobile navigation"
+              variants={menuContainer}
+              initial="hidden"
+              animate="visible"
+              className="
+                flex
+                flex-col
+                border-t
+                border-black/15
+                font-mabrypro
+                uppercase
+              "
+            >
+              {navLinks.map((link) => (
+                <motion.div
+                  key={link.href}
+                  variants={menuItem}
+                  className="border-b border-black/15"
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="
+                      block
+                      py-5
+                      text-[10vw]
+                      font-normal
+                      leading-[0.95]
+                      tracking-[-0.03em]
+                      transition-opacity
+                      duration-200
+                      hover:opacity-50
+                      focus-visible:outline
+                      focus-visible:outline-2
+                      focus-visible:outline-offset-4
+                    "
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+
+              <motion.div
+                variants={menuItem}
+                className="border-b border-black/15"
+              >
+                <a
+                  href={`mailto:${email}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="
+                    block
+                    py-5
+                    text-[10vw]
+                    font-normal
+                    leading-[0.95]
+                    tracking-[-0.03em]
+                    transition-opacity
+                    duration-200
+                    hover:opacity-50
+                    focus-visible:outline
+                    focus-visible:outline-2
+                    focus-visible:outline-offset-4
+                  "
+                >
+                  Contact
+                </a>
+              </motion.div>
+            </motion.nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* =====================================================
           CENTER CONTENT
@@ -333,51 +493,6 @@ export default function AnimatedHero({
               </span>
             ))}
           </motion.p>
-
-          <motion.nav
-            variants={linkContainer}
-            initial={shouldReduceMotion ? "visible" : "hidden"}
-            animate="visible"
-            className="
-              mt-5
-              flex
-              flex-col
-              gap-4
-              font-editorial
-              text-[16px]
-              font-normal
-              uppercase
-              leading-none
-              tracking-[0.02em]
-              md:text-[18px]
-            "
-          >
-            <motion.div variants={linkAnimation}>
-              <Link
-                href="/work"
-                className="
-                  w-fit
-                  transition-opacity
-                  hover:opacity-50
-                "
-              >
-                Work
-              </Link>
-            </motion.div>
-
-            <motion.div variants={linkAnimation}>
-              <Link
-                href="/field-journal"
-                className="
-                  w-fit
-                  transition-opacity
-                  hover:opacity-50
-                "
-              >
-                Field Journal
-              </Link>
-            </motion.div>
-          </motion.nav>
         </motion.div>
       </div>
     </section>

@@ -119,7 +119,7 @@ export default function FieldJournalStack({ entries }: FieldJournalStackProps) {
             (entry.videoUrl ? "video" : entry.pdfUrl ? "pdf" : "image");
 
           const notesBlock = (
-            <div className="flex h-full w-full flex-col justify-end p-6 font-dean text-black md:p-10 lg:p-14">
+            <div className="flex h-full w-full flex-col justify-end p-6 font-mabrypro text-black md:p-10 lg:p-14">
               {entry.date && (
                 <time
                   dateTime={entry.date}

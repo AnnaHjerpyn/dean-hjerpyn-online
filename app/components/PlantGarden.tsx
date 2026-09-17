@@ -31,7 +31,7 @@ const MOBILE_PLANT_COUNT = 65;
 const DESKTOP_COLUMNS = 20;
 const MOBILE_COLUMNS = 8;
 
-const PLANT_INTERVAL = 35;
+const PLANT_INTERVAL = 70;
 const PLANT_RETURN_DELAY = 700;
 
 // Animation timing
@@ -305,10 +305,10 @@ export default function PlantGarden({ drawings = [] }: PlantGardenProps) {
     }
 
     /*
-     * Start with a large cluster already
+     * Start with a small cluster already
      * visible so the page doesn't look empty.
      */
-    setVisibleCount(Math.min(35, plants.length));
+    setVisibleCount(Math.min(10, plants.length));
 
     const interval = window.setInterval(() => {
       setVisibleCount((current) => {
