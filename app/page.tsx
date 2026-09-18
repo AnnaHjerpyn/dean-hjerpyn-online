@@ -29,8 +29,10 @@ async function getSiteSettings(): Promise<SiteSettings | null> {
         aboutBody,
         email,
         instagram,
-        "plantDrawings": plantDrawings[] {
-          "url": asset->url,
+        "plantDrawings": plantDrawings[defined(asset)] {
+          // Resized, WebP, desaturated by Sanity's image CDN so the
+          // browser never decodes the full-size originals.
+          "url": asset->url + "?w=400&fm=webp&q=80&sat=-100",
           alt
         }
       }
@@ -45,10 +47,7 @@ export default async function Home() {
 
   const email = settings?.email || "hello@example.com";
 
-  const headline =
-    settings?.headline ||
-    "A portfolio of well built, site-specific landscapes that respond to client needs while simultaneously challenging historical and contemporary landscape construction methods, materials, and formal conventions. Our design approach is post-internet, critically-regionalist, and respectfully inflammatory.";
-
+  const headline = settings?.headline || "";
   return (
     <main className="relative min-h-[100svh] overflow-x-hidden bg-white text-black">
       <AnimatedHero
