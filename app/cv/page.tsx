@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { client } from "@/sanity/lib/client";
+import SiteHeader from "../components/SiteHeader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -9,6 +9,7 @@ export const revalidate = 0;
 /* -------------------------------------------------------------------------- */
 
 type SiteSettings = {
+  name?: string;
   email?: string;
   aboutHeading?: string;
   aboutBody?: string;
@@ -61,6 +62,7 @@ async function getSiteSettings(): Promise<SiteSettings | null> {
   return client.fetch(
     `
       *[_type == "siteSettings"][0] {
+        name,
         email,
         aboutHeading,
         aboutBody
@@ -171,45 +173,19 @@ export default async function CVPage() {
   const headingClass =
     "mb-8 border-b border-black/30 pb-3 font-editorial text-[18px] font-normal leading-none tracking-[-0.025em] md:text-[20px]";
 
-  const navLinkClass = "transition-opacity duration-200 hover:opacity-40";
-
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-white px-5 pb-28 pt-8 text-black md:px-10 md:pb-36 md:pt-12 lg:px-14 xl:px-20">
-      {/* Top-right navigation */}
-      <nav className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]">
-        <Link href="/work" className={navLinkClass}>
-          Work
-        </Link>
+    <main className="relative min-h-screen overflow-x-hidden bg-white px-4 pb-28 pt-[130px] text-black md:px-10 md:pb-36 md:pt-[190px]">
+      <SiteHeader
+        title={settings?.name || "Dean Hjerpyn"}
+        href="/"
+        email={email}
+      />
 
-        <Link href="/cv" className={navLinkClass}>
-          CV
-        </Link>
-
-        <Link href="/digital-garden" className={navLinkClass}>
-          Digital Garden
-        </Link>
-
-        <a href={`mailto:${email}`} className={navLinkClass}>
-          Contact
-        </a>
-      </nav>
-
-      <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-y-20 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
+      <div className="grid w-full grid-cols-1 gap-y-16 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
         {/* Left column */}
-        <aside className="w-full lg:sticky lg:top-12 lg:self-start">
-          <Link
-            href="/"
-            aria-label="Dean Hjerpyn homepage"
-            className="block w-fit"
-          >
-            <h1 className="font-editorial text-[62px] font-normal uppercase leading-[0.77] tracking-[-0.075em] sm:text-[72px] md:text-[82px] lg:text-[86px] xl:text-[94px]">
-              <span className="block">Dean</span>
-              <span className="block">Hjerpyn</span>
-            </h1>
-          </Link>
-
+        <aside className="no-scrollbar w-full lg:sticky lg:top-[190px] lg:max-h-[calc(100svh-190px-32px)] lg:self-start lg:overflow-y-auto">
           {(settings?.aboutHeading || settings?.aboutBody) && (
-            <section className="mt-12 pt-5 md:mt-14">
+            <section>
               <div className="max-w-[360px] font-sabon text-[13px] font-normal leading-[1.45] tracking-[-0.01em] md:text-[14px]">
                 {settings?.aboutHeading && (
                   <p className="mb-5 font-editorial text-[16px] font-normal leading-[1.25] tracking-[-0.025em] md:text-[17px]">
@@ -226,7 +202,7 @@ export default async function CVPage() {
         </aside>
 
         {/* Right column */}
-        <section className="w-full font-sabon text-[13px] font-normal leading-[1.38] tracking-[-0.012em] md:text-[14px] lg:pt-[100px] xl:text-[15px]">
+        <section className="w-full font-sabon text-[13px] font-normal leading-[1.38] tracking-[-0.012em] md:text-[14px] xl:text-[15px]">
           {/* Education */}
           {education.length > 0 && (
             <section className="mb-24 md:mb-32">
