@@ -171,39 +171,27 @@ export default async function CVPage() {
   const headingClass =
     "mb-8 border-b border-black/30 pb-3 font-editorial text-[18px] font-normal leading-none tracking-[-0.025em] md:text-[20px]";
 
-  const navLinkClass = "transition-opacity duration-200 hover:opacity-50";
+  const navLinkClass = "transition-opacity duration-200 hover:opacity-40";
 
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-white px-5 pb-28 pt-8 text-black md:px-10 md:pb-36 md:pt-12 lg:px-14 xl:px-20">
       {/* Top-right navigation */}
       <nav className="fixed right-4 top-4 z-50 flex max-w-[65vw] flex-wrap justify-end gap-x-4 gap-y-2 font-mabrypro text-[8px] font-normal uppercase tracking-[0.1em] text-black md:right-10 md:top-8 md:max-w-none md:gap-x-8 md:text-[11px]">
-        <Link
-          href="/work"
-          className="transition-opacity duration-200 hover:opacity-40"
-        >
+        <Link href="/work" className={navLinkClass}>
           Work
         </Link>
 
-        <Link
-          href="/field-journal"
-          className="transition-opacity duration-200 hover:opacity-40"
-        >
-          Field Journal
-        </Link>
-
-        <Link
-          href="/cv"
-          className="transition-opacity duration-200 hover:opacity-40"
-        >
+        <Link href="/cv" className={navLinkClass}>
           CV
         </Link>
 
-        <Link
-          href="/#contact"
-          className="transition-opacity duration-200 hover:opacity-40"
-        >
-          Contact
+        <Link href="/digital-garden" className={navLinkClass}>
+          Digital Garden
         </Link>
+
+        <a href={`mailto:${email}`} className={navLinkClass}>
+          Contact
+        </a>
       </nav>
 
       <div className="mx-auto grid w-full max-w-[1500px] grid-cols-1 gap-y-20 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
