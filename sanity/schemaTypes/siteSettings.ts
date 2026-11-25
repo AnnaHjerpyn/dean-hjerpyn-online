@@ -89,5 +89,29 @@ export const siteSettingsType = defineType({
         },
       ],
     },
+    {
+      name: "papermakingImages",
+      title: "Papermaking",
+      description:
+        "Scans or photos for the papermaking column on the home page. Drag to reorder; the top image shows first.",
+      type: "array",
+      of: [
+        {
+          type: "image",
+          options: {
+            hotspot: true,
+          },
+          fields: [
+            {
+              name: "alt",
+              title: "Alternative Text",
+              type: "string",
+              description:
+                "A short description, e.g. 'Green abaca sheet, close up'.",
+            },
+          ],
+        },
+      ],
+    },
   ],
 });

@@ -8,6 +8,9 @@ type SiteHeaderProps = {
   title: string;
   href?: string;
   email: string;
+  // "fixed"  = original sitewide header (fixed to the viewport)
+  // "inline" = sits in normal flow, used in the landing page's left column
+  variant?: "fixed" | "inline";
 };
 
 const menuContainer = {
@@ -39,17 +42,23 @@ const menuItem = {
 const TITLE_CLASSES =
   "font-mabrypro text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] md:text-[72px] lg:text-[76px]";
 
+const LINK_CLASSES =
+  "transition-opacity duration-200 hover:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
+
 export default function SiteHeader({
   title,
   href = "/",
   email,
+  variant = "fixed",
 }: SiteHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Field Journal removed: it now lives on the landing page.
+  // ASSUMPTION: the digital garden route is /digital-garden. Change if different.
   const navLinks = [
     { href: "/work", label: "Work" },
-    { href: "/field-journal", label: "Field Journal" },
     { href: "/cv", label: "CV" },
+    { href: "/digital-garden", label: "Digital Garden" },
   ];
 
   // Split the title into words so "Dean Hjerpyn"
@@ -68,6 +77,53 @@ export default function SiteHeader({
     }
   }, [isOpen]);
 
+  /* =====================================================
+     INLINE VARIANT (landing page, left column)
+     No hamburger: four short links wrap fine on mobile.
+     Order matches the mockup: work, cv, contact, digital garden.
+     ===================================================== */
+  if (variant === "inline") {
+    return (
+      <header className="px-4 pt-4 text-black md:px-10 md:pt-8">
+        <Link
+          href={href}
+          aria-label={`${title} homepage`}
+          className={`block ${LINK_CLASSES}`}
+        >
+          <h1 className={TITLE_CLASSES}>
+            {titleParts.map((part, index) => (
+              <span key={`${part}-${index}`} className="block">
+                {part}
+              </span>
+            ))}
+          </h1>
+        </Link>
+
+        <nav
+          aria-label="Primary navigation"
+          className="mt-6 flex flex-wrap items-center gap-x-9 gap-y-3 font-editorial text-[11px] font-normal uppercase leading-none tracking-[0.12em]"
+        >
+          <Link href="/work" className={LINK_CLASSES}>
+            Work
+          </Link>
+          <Link href="/cv" className={LINK_CLASSES}>
+            CV
+          </Link>
+          <a href={`mailto:${email}`} className={LINK_CLASSES}>
+            Contact
+          </a>
+          <Link href="/digital-garden" className={LINK_CLASSES}>
+            Digital Garden
+          </Link>
+        </nav>
+      </header>
+    );
+  }
+
+  /* =====================================================
+     FIXED VARIANT (original sitewide header, unchanged
+     apart from the updated navLinks above)
+     ===================================================== */
   return (
     <>
       {/* =====================================================
@@ -93,7 +149,7 @@ export default function SiteHeader({
           href={href}
           aria-label={`${title} homepage`}
           onClick={() => setIsOpen(false)}
-          className="block transition-opacity duration-200 hover:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+          className={`block ${LINK_CLASSES}`}
         >
           <h1 className={TITLE_CLASSES}>
             {titleParts.map((part, index) => (
@@ -183,19 +239,12 @@ export default function SiteHeader({
             "
           >
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="transition-opacity duration-200 hover:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-              >
+              <Link key={link.href} href={link.href} className={LINK_CLASSES}>
                 {link.label}
               </Link>
             ))}
 
-            <a
-              href={`mailto:${email}`}
-              className="transition-opacity duration-200 hover:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-            >
+            <a href={`mailto:${email}`} className={LINK_CLASSES}>
               Contact
             </a>
           </nav>
