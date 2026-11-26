@@ -8,8 +8,6 @@ type SiteHeaderProps = {
   title: string;
   href?: string;
   email: string;
-  // "fixed"  = original sitewide header (fixed to the viewport)
-  // "inline" = sits in normal flow, used in the landing page's left column
   variant?: "fixed" | "inline";
 };
 
@@ -38,9 +36,8 @@ const menuItem = {
   },
 };
 
-// Shared so the real title and the invisible layout spacer always match.
 const TITLE_CLASSES =
-  "font-mabrypro text-[54px] font-normal uppercase leading-[0.78] tracking-[-0.075em] md:text-[72px] lg:text-[76px]";
+  "font-editorial text-[36px] font-thin leading-none tracking-[-0.07em] whitespace-nowrap sm:text-[48px] md:text-[58px] lg:text-[64px]";
 
 const LINK_CLASSES =
   "transition-opacity duration-200 hover:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4";
@@ -53,35 +50,32 @@ export default function SiteHeader({
 }: SiteHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Field Journal removed: it now lives on the landing page.
-  // ASSUMPTION: the digital garden route is /digital-garden. Change if different.
+  // Work has been removed from the navigation.
   const navLinks = [
-    { href: "/work", label: "Work" },
     { href: "/cv", label: "CV" },
     { href: "/digital-garden", label: "Digital Garden" },
   ];
 
-  // Split the title into words so "Dean Hjerpyn"
-  // automatically becomes two stacked lines.
   const titleParts = title.trim().split(/\s+/);
 
-  // Lock body scroll while the mobile menu is open.
+  // Lock body scrolling while the mobile menu is open.
   useEffect(() => {
-    if (isOpen) {
-      const previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+    if (!isOpen) return;
 
-      return () => {
-        document.body.style.overflow = previousOverflow;
-      };
-    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [isOpen]);
 
   /* =====================================================
-     INLINE VARIANT (landing page, left column)
-     No hamburger: four short links wrap fine on mobile.
-     Order matches the mockup: work, cv, contact, digital garden.
+     INLINE VARIANT
+     Used on the homepage.
+     No hamburger menu.
      ===================================================== */
+
   if (variant === "inline") {
     return (
       <header className="px-4 pt-4 text-black md:px-10 md:pt-8">
@@ -91,29 +85,24 @@ export default function SiteHeader({
           className={`block ${LINK_CLASSES}`}
         >
           <h1 className={TITLE_CLASSES}>
-            {titleParts.map((part, index) => (
-              <span key={`${part}-${index}`} className="block">
-                {part}
-              </span>
-            ))}
+            <span className="whitespace-nowrap">{title}</span>
           </h1>
         </Link>
 
         <nav
           aria-label="Primary navigation"
-          className="mt-6 flex flex-wrap items-center gap-x-9 gap-y-3 font-editorial text-[11px] font-normal uppercase leading-none tracking-[0.12em]"
+          className="mt-6 flex flex-wrap items-center gap-x-9 gap-y-3 font-sabon text-[11px] font-normal italic leading-none tracking-[0.12em]"
         >
-          <Link href="/work" className={LINK_CLASSES}>
-            Work
-          </Link>
           <Link href="/cv" className={LINK_CLASSES}>
-            CV
+            cv
           </Link>
+
           <a href={`mailto:${email}`} className={LINK_CLASSES}>
-            Contact
+            contact
           </a>
+
           <Link href="/digital-garden" className={LINK_CLASSES}>
-            Digital Garden
+            digital garden
           </Link>
         </nav>
       </header>
@@ -121,29 +110,13 @@ export default function SiteHeader({
   }
 
   /* =====================================================
-     FIXED VARIANT (original sitewide header, unchanged
-     apart from the updated navLinks above)
+     FIXED VARIANT
+     Used for sitewide pages.
      ===================================================== */
+
   return (
     <>
-      {/* =====================================================
-          BLENDED TITLE
-
-          Lives OUTSIDE <header>. A `fixed` element creates its
-          own stacking context, so a blend mode applied inside
-          the header can only blend with the header's (empty)
-          background. Here, the wrapper shares the root stacking
-          context with the plant layer, so `mix-blend-difference`
-          can actually see the drawings behind it.
-
-          The blend is on the wrapper (not the h1) because the
-          link's hover:opacity-50 would otherwise isolate the
-          h1 and flatten the effect on hover.
-
-          Position must match the header's padding:
-          mobile  px-4 / pt-4   ->  left-4  / top-4
-          desktop md:px-10 / md:pt-8 -> md:left-10 / md:top-8
-          ===================================================== */}
+      {/* Blended title */}
       <div className="fixed left-4 top-4 z-[201] text-white mix-blend-difference md:left-10 md:top-8">
         <Link
           href={href}
@@ -179,8 +152,7 @@ export default function SiteHeader({
           "
         >
           <div className="flex min-w-0 items-center justify-between gap-4">
-            {/* Invisible spacer: reserves the title's space in the
-                layout so the hamburger and nav stay where they were. */}
+            {/* Invisible title spacer */}
             <div
               aria-hidden="true"
               className={`invisible block shrink-0 ${TITLE_CLASSES}`}
@@ -192,7 +164,7 @@ export default function SiteHeader({
               ))}
             </div>
 
-            {/* Hamburger toggle — mobile only */}
+            {/* Mobile hamburger */}
             <button
               type="button"
               onClick={() => setIsOpen((prev) => !prev)}
@@ -206,11 +178,13 @@ export default function SiteHeader({
                     isOpen ? "translate-y-[7px] rotate-45" : ""
                   }`}
                 />
+
                 <span
                   className={`block h-[1.5px] w-full bg-black transition-opacity duration-200 ${
                     isOpen ? "opacity-0" : "opacity-100"
                   }`}
                 />
+
                 <span
                   className={`block h-[1.5px] w-full bg-black transition-transform duration-200 ${
                     isOpen ? "-translate-y-[7px] -rotate-45" : ""
@@ -220,7 +194,7 @@ export default function SiteHeader({
             </button>
           </div>
 
-          {/* Desktop nav — always visible at md and up */}
+          {/* Desktop navigation */}
           <nav
             aria-label="Primary navigation"
             className="
@@ -250,11 +224,7 @@ export default function SiteHeader({
           </nav>
         </div>
 
-        {/* =====================================================
-            MOBILE SLIDE-DOWN NAVIGATION
-            Same visual language as AnimatedHero's mobile menu:
-            large stacked links, hairline dividers, email footer.
-            ===================================================== */}
+        {/* Mobile navigation */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -262,8 +232,16 @@ export default function SiteHeader({
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "-100%", opacity: 0 }}
               transition={{
-                y: { type: "spring", stiffness: 120, damping: 26, mass: 1.4 },
-                opacity: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+                y: {
+                  type: "spring",
+                  stiffness: 120,
+                  damping: 26,
+                  mass: 1.4,
+                },
+                opacity: {
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1],
+                },
               }}
               className="
                 fixed
@@ -322,6 +300,7 @@ export default function SiteHeader({
                   </motion.div>
                 ))}
 
+                {/* Contact */}
                 <motion.div
                   variants={menuItem}
                   className="border-b border-black/15"
