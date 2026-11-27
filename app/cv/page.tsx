@@ -122,7 +122,7 @@ async function getCVPage(): Promise<CVPageData | null> {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Reusable list                                                              */
+/* Reusable pieces                                                            */
 /* -------------------------------------------------------------------------- */
 
 type ResumeListProps = {
@@ -139,7 +139,7 @@ function ResumeList({ items = [] }: ResumeListProps) {
   }
 
   return (
-    <div className="mt-5 space-y-3">
+    <div className="mt-4 space-y-2.5">
       {validItems.map((item, index) => (
         <div
           key={`${item}-${index}`}
@@ -153,6 +153,17 @@ function ResumeList({ items = [] }: ResumeListProps) {
         </div>
       ))}
     </div>
+  );
+}
+
+/* Path-style section label, e.g. "/education". Lowercased with CSS so the
+   Sanity data is untouched. */
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-6 flex items-baseline gap-0.5 border-b border-black/30 pb-2 font-editorial text-[13px] font-normal lowercase leading-none tracking-[-0.01em]">
+      <span aria-hidden="true">/</span>
+      {children}
+    </h2>
   );
 }
 
@@ -170,9 +181,6 @@ export default async function CVPage() {
   const awards = cv?.awards || [];
   const skills = cv?.skills || [];
 
-  const headingClass =
-    "mb-8 border-b border-black/30 pb-3 font-editorial text-[18px] font-normal leading-none tracking-[-0.025em] md:text-[20px]";
-
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-white text-black">
       <SiteHeader
@@ -182,7 +190,7 @@ export default async function CVPage() {
         email={email}
       />
 
-      <main className="pb-28 pt-10 md:px-10 md:pb-36 md:pt-40">
+      <main className="px-4 pb-28 pt-10 md:px-10 md:pb-36 md:pt-24">
         <div className="grid w-full grid-cols-1 gap-y-16 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
           {/* Left column */}
           <aside className="no-scrollbar w-full lg:sticky lg:top-8 lg:max-h-[calc(100svh-64px)] lg:self-start lg:overflow-y-auto">
@@ -207,12 +215,12 @@ export default async function CVPage() {
           <section className="w-full font-sabon text-[13px] font-normal leading-[1.38] tracking-[-0.012em] md:text-[14px] xl:text-[15px]">
             {/* Education */}
             {education.length > 0 && (
-              <section className="mb-24 md:mb-32">
-                <h2 className={headingClass}>
+              <section className="mb-16 md:mb-20">
+                <SectionHeading>
                   {cv?.educationHeading || "Education"}
-                </h2>
+                </SectionHeading>
 
-                <div className="space-y-12">
+                <div className="space-y-8">
                   {education.map((entry) => (
                     <article key={entry._key}>
                       {entry.institution && (
@@ -237,35 +245,40 @@ export default async function CVPage() {
 
             {/* Experience */}
             {experience.length > 0 && (
-              <section className="mb-24 md:mb-32">
-                <h2 className={headingClass}>
+              <section className="mb-16 md:mb-20">
+                <SectionHeading>
                   {cv?.experienceHeading || "Experience"}
-                </h2>
+                </SectionHeading>
 
-                <div className="space-y-16 md:space-y-20">
+                <div className="space-y-10 md:space-y-12">
                   {experience.map((entry) => (
-                    <article key={entry._key}>
-                      {(entry.position || entry.dates) && (
-                        <p className="font-editorial text-[14px] font-normal leading-[1.3] md:text-[15px]">
-                          {entry.position}
+                    <article
+                      key={entry._key}
+                      className="grid grid-cols-1 gap-y-2 xl:grid-cols-[150px_minmax(0,1fr)] xl:gap-x-8"
+                    >
+                      <p className="font-editorial text-[13px] font-normal leading-[1.3]">
+                        {entry.dates}
+                      </p>
 
-                          {entry.position && entry.dates ? " | " : ""}
+                      <div>
+                        {entry.position && (
+                          <p className="font-editorial text-[14px] font-normal leading-[1.3] md:text-[15px]">
+                            {entry.position}
+                          </p>
+                        )}
 
-                          {entry.dates}
-                        </p>
-                      )}
+                        {(entry.organization || entry.location) && (
+                          <p className="mt-1">
+                            {entry.organization}
 
-                      {(entry.organization || entry.location) && (
-                        <p className="mt-1">
-                          {entry.organization}
+                            {entry.organization && entry.location ? ", " : ""}
 
-                          {entry.organization && entry.location ? ", " : ""}
+                            {entry.location}
+                          </p>
+                        )}
 
-                          {entry.location}
-                        </p>
-                      )}
-
-                      <ResumeList items={entry.bullets} />
+                        <ResumeList items={entry.bullets} />
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -274,12 +287,10 @@ export default async function CVPage() {
 
             {/* Awards */}
             {awards.length > 0 && (
-              <section className="mb-24 md:mb-32">
-                <h2 className={headingClass}>
-                  {cv?.awardsHeading || "Awards"}
-                </h2>
+              <section className="mb-16 md:mb-20">
+                <SectionHeading>{cv?.awardsHeading || "Awards"}</SectionHeading>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {awards.map((award) => (
                     <article
                       key={award._key}
@@ -299,9 +310,9 @@ export default async function CVPage() {
             {/* Special skills */}
             {skills.length > 0 && (
               <section>
-                <h2 className={headingClass}>
+                <SectionHeading>
                   {cv?.skillsHeading || "Special Skills"}
-                </h2>
+                </SectionHeading>
 
                 <ResumeList items={skills} />
               </section>
