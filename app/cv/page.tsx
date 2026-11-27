@@ -183,7 +183,7 @@ export default async function CVPage() {
 
       <div className="grid w-full grid-cols-1 gap-y-16 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
         {/* Left column */}
-        <aside className="no-scrollbar w-full lg:sticky lg:top-[190px] lg:max-h-[calc(100svh-190px-32px)] lg:self-start lg:overflow-y-auto">
+        <aside className="no-scrollbar w-full lg:sticky lg:top-[10px] lg:max-h-[calc(100svh-190px-32px)] lg:self-start lg:overflow-y-auto">
           {(settings?.aboutHeading || settings?.aboutBody) && (
             <section>
               <div className="max-w-[360px] font-sabon text-[13px] font-normal leading-[1.45] tracking-[-0.01em] md:text-[14px]">
