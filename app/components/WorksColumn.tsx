@@ -62,26 +62,6 @@ const ICON_PROPS = {
   strokeWidth: 2,
 } as const;
 
-function EyeIcon() {
-  return (
-    <svg {...ICON_PROPS}>
-      <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function EyeOffIcon() {
-  return (
-    <svg {...ICON_PROPS}>
-      <path d="m3 3 18 18" />
-      <path d="M10.6 6.2A11 11 0 0 1 12 6c6.5 0 10 6 10 6a18 18 0 0 1-2.1 2.8" />
-      <path d="M6.6 6.6C3.6 8.4 2 12 2 12s3.5 6 10 6a10.8 10.8 0 0 0 4.1-.8" />
-      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-    </svg>
-  );
-}
-
 function LockedIcon() {
   return (
     <svg {...ICON_PROPS}>
@@ -100,6 +80,10 @@ function UnlockedIcon() {
   );
 }
 
+// Shown on hover or keyboard focus, and always on touch screens.
+const SHOW_ON_HOVER =
+  "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100";
+
 /* ------------------------------ Component -------------------------------- */
 
 export default function WorksColumn({ works, header }: WorksColumnProps) {
@@ -107,16 +91,8 @@ export default function WorksColumn({ works, header }: WorksColumnProps) {
   const resizeState = useRef<ResizeState | null>(null);
 
   const [layouts, setLayouts] = useState<Record<string, Layout>>({});
-  const [hiddenIds, setHiddenIds] = useState<Record<string, boolean>>({});
-  const [activeId, setActiveId] = useState<string | null>(null);
 
   const getLayout = (id: string): Layout => layouts[id] ?? DEFAULT_LAYOUT;
-
-  const visibleWorks = works.filter((work) => !hiddenIds[work._id]);
-
-  function toggleVisibility(id: string) {
-    setHiddenIds((current) => ({ ...current, [id]: !current[id] }));
-  }
 
   function toggleLock(id: string) {
     resizeState.current = null;
@@ -223,104 +199,11 @@ export default function WorksColumn({ works, header }: WorksColumnProps) {
 
   return (
     <section className="no-scrollbar pb-12 md:h-[100svh] md:overflow-y-auto">
-      {/* Name + nav, with the Selected Works list beside it on wide screens */}
-      <div className="xl:flex xl:items-start xl:justify-between xl:gap-10 xl:pr-10">
-        <div className="shrink-0">{header}</div>
+      {header}
 
-        <aside className="px-4 pt-8 md:px-10 xl:mt-8 xl:max-w-[380px] xl:flex-1 xl:px-0 xl:pt-0">
-          <h2 className="mb-2 font-mabrypro text-[clamp(16px,1.3vw,22px)] font-normal leading-none tracking-[-0.03em]">
-            Selected Works
-          </h2>
-
-          <div className="text-pretty">
-            {works.map((work) => {
-              const layout = getLayout(work._id);
-              const isHidden = Boolean(hiddenIds[work._id]);
-              const isActive = activeId === work._id && !isHidden;
-
-              // Icons appear on hover, and stay visible when they show a
-              // non-default state (hidden / locked) and on touch screens.
-              const iconVisibility = (alwaysOn: boolean) =>
-                alwaysOn
-                  ? "opacity-100"
-                  : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100";
-
-              // Same padding on every title so the highlight never changes
-              // the text's width or where it wraps.
-              const titleClasses = `-mx-1 box-decoration-clone px-1 transition-[color,background-color,opacity] duration-150 ${
-                isActive ? "bg-[#2f6cff] text-white" : "hover:opacity-45"
-              }`;
-
-              return (
-                <div
-                  key={work._id}
-                  onPointerEnter={() => setActiveId(work._id)}
-                  onPointerLeave={() => setActiveId(null)}
-                  className="group grid min-w-0 grid-cols-[1em_1em_minmax(0,1fr)] items-start gap-x-2 py-[3px] font-mabrypro text-[clamp(13px,1vw,16px)] font-normal leading-[1.25] tracking-[-0.02em]"
-                >
-                  <button
-                    type="button"
-                    aria-label={
-                      isHidden
-                        ? `Show ${work.title} image`
-                        : `Hide ${work.title} image`
-                    }
-                    aria-pressed={!isHidden}
-                    title={
-                      isHidden ? "Show project image" : "Hide project image"
-                    }
-                    className={`flex h-[1.25em] w-[1em] items-center justify-center transition-opacity duration-200 hover:!opacity-40 ${iconVisibility(
-                      isHidden
-                    )}`}
-                    onClick={() => toggleVisibility(work._id)}
-                  >
-                    {isHidden ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-
-                  <button
-                    type="button"
-                    aria-label={
-                      layout.locked
-                        ? `Unlock ${work.title} image`
-                        : `Lock ${work.title} image`
-                    }
-                    aria-pressed={layout.locked}
-                    title={
-                      layout.locked
-                        ? "Unlock image to resize it"
-                        : "Lock image size"
-                    }
-                    className={`flex h-[1.25em] w-[1em] items-center justify-center transition-opacity duration-200 hover:!opacity-40 ${
-                      layout.locked ? "" : "text-[#2f6cff]"
-                    } ${iconVisibility(layout.locked)}`}
-                    onClick={() => toggleLock(work._id)}
-                  >
-                    {layout.locked ? <LockedIcon /> : <UnlockedIcon />}
-                  </button>
-
-                  {work.slug ? (
-                    <Link
-                      href={`/projects/${encodeURIComponent(work.slug)}`}
-                      aria-label={`Open ${work.title} project`}
-                      className="min-w-0"
-                    >
-                      <span className={titleClasses}>{work.title}</span>
-                    </Link>
-                  ) : (
-                    <span className="min-w-0">
-                      <span className={titleClasses}>{work.title}</span>
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </aside>
-      </div>
-
-      {/* Images: each can be resized from its corner markers unless locked */}
+      {/* Images: titles show on hover, corner markers resize unless locked */}
       <div ref={imagesRef} className="mt-10 flex flex-col gap-6 px-4 md:px-10">
-        {visibleWorks.map((work) => {
+        {works.map((work) => {
           const layout = getLayout(work._id);
 
           const image = (
@@ -337,13 +220,11 @@ export default function WorksColumn({ works, header }: WorksColumnProps) {
           return (
             <div
               key={work._id}
-              className="relative"
+              className="group relative"
               style={{
                 marginLeft: `${layout.x}%`,
                 width: `${layout.width}%`,
               }}
-              onPointerEnter={() => setActiveId(work._id)}
-              onPointerLeave={() => setActiveId(null)}
             >
               {work.slug ? (
                 <Link
@@ -365,6 +246,38 @@ export default function WorksColumn({ works, header }: WorksColumnProps) {
                 onResizePointerMove={handleResizePointerMove}
                 onResizePointerUp={handleResizePointerUp}
               />
+
+              {/* Title (and lock) over the image's top-left corner */}
+              <div className="pointer-events-none absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] items-start gap-1.5 font-mabrypro text-[clamp(13px,1.1vw,17px)] font-normal leading-[1.2] tracking-[-0.02em]">
+                <span
+                  className={`min-w-0 bg-[#2f6cff] px-1.5 py-0.5 text-white transition-opacity duration-200 ${SHOW_ON_HOVER}`}
+                >
+                  {work.title}
+                </span>
+
+                <button
+                  type="button"
+                  aria-label={
+                    layout.locked
+                      ? `Unlock ${work.title} image`
+                      : `Lock ${work.title} image`
+                  }
+                  aria-pressed={layout.locked}
+                  title={
+                    layout.locked
+                      ? "Unlock image to resize it"
+                      : "Lock image size"
+                  }
+                  className={`pointer-events-auto flex h-6 w-6 shrink-0 items-center justify-center border border-[#2f6cff] text-[14px] transition-opacity duration-200 ${
+                    layout.locked
+                      ? "bg-[#2f6cff] text-white opacity-100"
+                      : `bg-white text-[#2f6cff] ${SHOW_ON_HOVER}`
+                  }`}
+                  onClick={() => toggleLock(work._id)}
+                >
+                  {layout.locked ? <LockedIcon /> : <UnlockedIcon />}
+                </button>
+              </div>
             </div>
           );
         })}
