@@ -174,136 +174,141 @@ export default async function CVPage() {
     "mb-8 border-b border-black/30 pb-3 font-editorial text-[18px] font-normal leading-none tracking-[-0.025em] md:text-[20px]";
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-white px-4 pb-28 pt-[130px] text-black md:px-10 md:pb-36 md:pt-[190px]">
+    <div className="relative min-h-screen overflow-x-hidden bg-white text-black">
       <SiteHeader
+        variant="inline"
         title={settings?.name || "Dean Hjerpyn"}
         href="/"
         email={email}
       />
 
-      <div className="grid w-full grid-cols-1 gap-y-16 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
-        {/* Left column */}
-        <aside className="no-scrollbar w-full lg:sticky lg:top-[10px] lg:max-h-[calc(100svh-190px-32px)] lg:self-start lg:overflow-y-auto">
-          {(settings?.aboutHeading || settings?.aboutBody) && (
-            <section>
-              <div className="max-w-[360px] font-sabon text-[13px] font-normal leading-[1.45] tracking-[-0.01em] md:text-[14px]">
-                {settings?.aboutHeading && (
-                  <p className="mb-5 font-editorial text-[16px] font-normal leading-[1.25] tracking-[-0.025em] md:text-[17px]">
-                    {settings.aboutHeading}
-                  </p>
-                )}
+      <main className="pb-28 pt-10 md:px-10 md:pb-36 md:pt-40">
+        <div className="grid w-full grid-cols-1 gap-y-16 lg:grid-cols-[340px_minmax(0,820px)] lg:gap-x-20 xl:grid-cols-[380px_minmax(0,900px)] xl:gap-x-28">
+          {/* Left column */}
+          <aside className="no-scrollbar w-full lg:sticky lg:top-8 lg:max-h-[calc(100svh-64px)] lg:self-start lg:overflow-y-auto">
+            {(settings?.aboutHeading || settings?.aboutBody) && (
+              <section>
+                <div className="max-w-[360px] font-sabon text-[13px] font-normal leading-[1.45] tracking-[-0.01em] md:text-[14px]">
+                  {settings?.aboutHeading && (
+                    <p className="mb-5 font-editorial text-[16px] font-normal leading-[1.25] tracking-[-0.025em] md:text-[17px]">
+                      {settings.aboutHeading}
+                    </p>
+                  )}
 
-                {settings?.aboutBody && (
-                  <p className="whitespace-pre-line">{settings.aboutBody}</p>
-                )}
-              </div>
-            </section>
-          )}
-        </aside>
+                  {settings?.aboutBody && (
+                    <p className="whitespace-pre-line">{settings.aboutBody}</p>
+                  )}
+                </div>
+              </section>
+            )}
+          </aside>
 
-        {/* Right column */}
-        <section className="w-full font-sabon text-[13px] font-normal leading-[1.38] tracking-[-0.012em] md:text-[14px] xl:text-[15px]">
-          {/* Education */}
-          {education.length > 0 && (
-            <section className="mb-24 md:mb-32">
-              <h2 className={headingClass}>
-                {cv?.educationHeading || "Education"}
-              </h2>
+          {/* Right column */}
+          <section className="w-full font-sabon text-[13px] font-normal leading-[1.38] tracking-[-0.012em] md:text-[14px] xl:text-[15px]">
+            {/* Education */}
+            {education.length > 0 && (
+              <section className="mb-24 md:mb-32">
+                <h2 className={headingClass}>
+                  {cv?.educationHeading || "Education"}
+                </h2>
 
-              <div className="space-y-12">
-                {education.map((entry) => (
-                  <article key={entry._key}>
-                    {entry.institution && (
-                      <p>
-                        {entry.institution}
-                        {entry.location ? ` in ${entry.location}` : ""}
-                      </p>
-                    )}
+                <div className="space-y-12">
+                  {education.map((entry) => (
+                    <article key={entry._key}>
+                      {entry.institution && (
+                        <p>
+                          {entry.institution}
+                          {entry.location ? ` in ${entry.location}` : ""}
+                        </p>
+                      )}
 
-                    {entry.degree && <p>{entry.degree}</p>}
+                      {entry.degree && <p>{entry.degree}</p>}
 
-                    {entry.specialization && <p>{entry.specialization}</p>}
+                      {entry.specialization && <p>{entry.specialization}</p>}
 
-                    {entry.minor && <p>{entry.minor}</p>}
+                      {entry.minor && <p>{entry.minor}</p>}
 
-                    <ResumeList items={entry.details} />
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
+                      <ResumeList items={entry.details} />
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Experience */}
-          {experience.length > 0 && (
-            <section className="mb-24 md:mb-32">
-              <h2 className={headingClass}>
-                {cv?.experienceHeading || "Experience"}
-              </h2>
+            {/* Experience */}
+            {experience.length > 0 && (
+              <section className="mb-24 md:mb-32">
+                <h2 className={headingClass}>
+                  {cv?.experienceHeading || "Experience"}
+                </h2>
 
-              <div className="space-y-16 md:space-y-20">
-                {experience.map((entry) => (
-                  <article key={entry._key}>
-                    {(entry.position || entry.dates) && (
-                      <p className="font-editorial text-[14px] font-normal leading-[1.3] md:text-[15px]">
-                        {entry.position}
+                <div className="space-y-16 md:space-y-20">
+                  {experience.map((entry) => (
+                    <article key={entry._key}>
+                      {(entry.position || entry.dates) && (
+                        <p className="font-editorial text-[14px] font-normal leading-[1.3] md:text-[15px]">
+                          {entry.position}
 
-                        {entry.position && entry.dates ? " | " : ""}
+                          {entry.position && entry.dates ? " | " : ""}
 
-                        {entry.dates}
-                      </p>
-                    )}
+                          {entry.dates}
+                        </p>
+                      )}
 
-                    {(entry.organization || entry.location) && (
-                      <p className="mt-1">
-                        {entry.organization}
+                      {(entry.organization || entry.location) && (
+                        <p className="mt-1">
+                          {entry.organization}
 
-                        {entry.organization && entry.location ? ", " : ""}
+                          {entry.organization && entry.location ? ", " : ""}
 
-                        {entry.location}
-                      </p>
-                    )}
+                          {entry.location}
+                        </p>
+                      )}
 
-                    <ResumeList items={entry.bullets} />
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
+                      <ResumeList items={entry.bullets} />
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Awards */}
-          {awards.length > 0 && (
-            <section className="mb-24 md:mb-32">
-              <h2 className={headingClass}>{cv?.awardsHeading || "Awards"}</h2>
+            {/* Awards */}
+            {awards.length > 0 && (
+              <section className="mb-24 md:mb-32">
+                <h2 className={headingClass}>
+                  {cv?.awardsHeading || "Awards"}
+                </h2>
 
-              <div className="space-y-6">
-                {awards.map((award) => (
-                  <article
-                    key={award._key}
-                    className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-4"
-                  >
-                    <span className="font-editorial">
-                      {award.year ? `${award.year} //` : "//"}
-                    </span>
+                <div className="space-y-6">
+                  {awards.map((award) => (
+                    <article
+                      key={award._key}
+                      className="grid grid-cols-[72px_minmax(0,1fr)] gap-x-4"
+                    >
+                      <span className="font-editorial">
+                        {award.year ? `${award.year} //` : "//"}
+                      </span>
 
-                    {award.title && <p>{award.title}</p>}
-                  </article>
-                ))}
-              </div>
-            </section>
-          )}
+                      {award.title && <p>{award.title}</p>}
+                    </article>
+                  ))}
+                </div>
+              </section>
+            )}
 
-          {/* Special skills */}
-          {skills.length > 0 && (
-            <section>
-              <h2 className={headingClass}>
-                {cv?.skillsHeading || "Special Skills"}
-              </h2>
+            {/* Special skills */}
+            {skills.length > 0 && (
+              <section>
+                <h2 className={headingClass}>
+                  {cv?.skillsHeading || "Special Skills"}
+                </h2>
 
-              <ResumeList items={skills} />
-            </section>
-          )}
-        </section>
-      </div>
-    </main>
+                <ResumeList items={skills} />
+              </section>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
   );
 }
